@@ -1,5 +1,8 @@
 # yonote-mcp
 
+[![pipeline](https://gitlab.com/NikitaMurugov/yonote-mcp/badges/main/pipeline.svg)](https://gitlab.com/NikitaMurugov/yonote-mcp/-/pipelines)
+[![coverage](https://gitlab.com/NikitaMurugov/yonote-mcp/badges/main/coverage.svg)](https://gitlab.com/NikitaMurugov/yonote-mcp/-/graphs/main/charts)
+
 MCP-сервер для управления рабочим пространством [Yonote](https://yonote.ru) через AI-ассистенты (Claude, Cursor и другие).
 
 Предоставляет 56 инструментов для работы с документами, коллекциями, пользователями, группами, комментариями, ссылками общего доступа, избранным, ревизиями, событиями и просмотрами.

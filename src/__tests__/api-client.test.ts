@@ -145,6 +145,48 @@ describe("YonoteClient", () => {
     }
   });
 
+  it("uses fallback errorId when error field is missing in response body", async () => {
+    mockFetchError(400, "Bad Request", { message: "something went wrong" });
+    const client = new YonoteClient("token", "https://test.api/api");
+
+    try {
+      await client.request("test.method");
+      expect.fail("should have thrown");
+    } catch (e) {
+      const err = e as YonoteApiError;
+      expect(err.errorId).toBe("unknown");
+      expect(err.message).toContain("something went wrong");
+    }
+  });
+
+  it("uses fallback message when message field is missing in response body", async () => {
+    mockFetchError(403, "Forbidden", { error: "forbidden" });
+    const client = new YonoteClient("token", "https://test.api/api");
+
+    try {
+      await client.request("test.method");
+      expect.fail("should have thrown");
+    } catch (e) {
+      const err = e as YonoteApiError;
+      expect(err.errorId).toBe("forbidden");
+      expect(err.message).toContain("Forbidden");
+    }
+  });
+
+  it("uses fallback errorId and message when body has empty fields", async () => {
+    mockFetchError(500, "Internal Server Error", { error: "", message: "" });
+    const client = new YonoteClient("token", "https://test.api/api");
+
+    try {
+      await client.request("test.method");
+      expect.fail("should have thrown");
+    } catch (e) {
+      const err = e as YonoteApiError;
+      expect(err.errorId).toBe("unknown");
+      expect(err.message).toContain("Internal Server Error");
+    }
+  });
+
   it("throws YonoteApiError with statusText fallback when body is not parseable", async () => {
     mockFetchError(500, "Internal Server Error");
     const client = new YonoteClient("token", "https://test.api/api");

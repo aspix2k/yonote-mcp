@@ -1,4 +1,5 @@
-import { createServer } from "node:http";
+import { fileURLToPath } from "node:url";
+import { createServer, type Server } from "node:http";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
@@ -15,19 +16,18 @@ import { registerEventTools } from "./tools/events.js";
 import { registerViewTools } from "./tools/views.js";
 import { registerAuthTools } from "./tools/auth.js";
 
-function parseArgs() {
-  const args = process.argv.slice(2);
+export function parseArgs(argv: string[] = process.argv.slice(2)) {
   let token: string | undefined;
   let project: string | undefined;
   let baseUrl: string | undefined;
 
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--token" && args[i + 1]) {
-      token = args[++i];
-    } else if (args[i] === "--project" && args[i + 1]) {
-      project = args[++i];
-    } else if (args[i] === "--base-url" && args[i + 1]) {
-      baseUrl = args[++i];
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === "--token" && argv[i + 1]) {
+      token = argv[++i];
+    } else if (argv[i] === "--project" && argv[i + 1]) {
+      project = argv[++i];
+    } else if (argv[i] === "--base-url" && argv[i + 1]) {
+      baseUrl = argv[++i];
     }
   }
 
@@ -41,17 +41,7 @@ function parseArgs() {
   };
 }
 
-const config = parseArgs();
-
-if (!config.token) {
-  console.error("YONOTE_API_TOKEN is required. Pass via --token argument or YONOTE_API_TOKEN env variable.");
-  process.exit(1);
-}
-
-const token: string = config.token;
-const baseUrl: string = config.baseUrl;
-
-function createMcpServer(): McpServer {
+export function createMcpServer(token: string, baseUrl: string): McpServer {
   const server = new McpServer({
     name: "yonote-mcp",
     version: "1.0.0",
@@ -74,7 +64,16 @@ function createMcpServer(): McpServer {
   return server;
 }
 
-async function main() {
+export async function main(): Promise<Server | void> {
+  const config = parseArgs();
+
+  if (!config.token) {
+    console.error("YONOTE_API_TOKEN is required. Pass via --token argument or YONOTE_API_TOKEN env variable.");
+    process.exit(1);
+  }
+
+  const token: string = config.token;
+  const baseUrl: string = config.baseUrl;
   const transportType = process.env.TRANSPORT || "stdio";
 
   if (transportType === "http") {
@@ -87,7 +86,7 @@ async function main() {
         const transport = new StreamableHTTPServerTransport({
           sessionIdGenerator: undefined,
         });
-        const server = createMcpServer();
+        const server = createMcpServer(token, baseUrl);
         await server.connect(transport);
         await transport.handleRequest(req, res);
         res.on("close", () => {
@@ -103,19 +102,27 @@ async function main() {
       }
     });
 
-    httpServer.listen(port, () => {
-      console.error(
-        `Yonote MCP server (HTTP) listening on http://0.0.0.0:${port}/mcp`,
-      );
+    return new Promise((resolve) => {
+      httpServer.listen(port, () => {
+        console.error(
+          `Yonote MCP server (HTTP) listening on http://0.0.0.0:${port}/mcp`,
+        );
+        resolve(httpServer);
+      });
     });
   } else {
-    const server = createMcpServer();
+    const server = createMcpServer(token, baseUrl);
     const transport = new StdioServerTransport();
     await server.connect(transport);
   }
 }
 
-main().catch((error) => {
-  console.error("Failed to start Yonote MCP server:", error);
-  process.exit(1);
-});
+/* v8 ignore start */
+const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
+if (isMainModule) {
+  main().catch((error) => {
+    console.error("Failed to start Yonote MCP server:", error);
+    process.exit(1);
+  });
+}
+/* v8 ignore stop */
