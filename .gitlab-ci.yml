@@ -6,9 +6,11 @@ test:
   image: node:22-alpine
   script:
     - npm ci
+    - npm run build
     - npm run test:coverage
   coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
   artifacts:
+    when: always
     reports:
       coverage_report:
         coverage_format: cobertura

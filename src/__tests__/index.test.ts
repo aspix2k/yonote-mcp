@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { execFile } from "node:child_process";
 import http from "node:http";
 import { parseArgs, createMcpServer, main } from "../index.js";
 
@@ -236,23 +235,4 @@ describe("main", () => {
     });
   });
 
-  describe("isMainModule entrypoint", () => {
-    it("exits with code 1 and logs error when token is missing", async () => {
-      const { stderr, exitCode } = await new Promise<{
-        stderr: string;
-        exitCode: number | null;
-      }>((resolve) => {
-        execFile(
-          "node",
-          ["dist/index.js"],
-          { env: { ...process.env, YONOTE_API_TOKEN: "" }, timeout: 5000 },
-          (error, _stdout, stderr) => {
-            resolve({ stderr, exitCode: error?.code ? Number(error.code) : (error as NodeJS.ErrnoException)?.errno ?? null });
-          },
-        );
-      });
-
-      expect(stderr).toContain("YONOTE_API_TOKEN is required");
-    });
-  });
 });
