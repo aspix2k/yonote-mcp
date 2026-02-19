@@ -41,11 +41,12 @@ describe("comment tools", () => {
     });
   }
 
-  it("comments_create passes documentId and text", async () => {
+  it("comments_create passes entityType, entityId and text", async () => {
     const handler = getToolHandler(tools, "comments_create");
-    await handler({ documentId: "doc-1", text: "Nice doc!" });
+    await handler({ entityType: "document", entityId: "doc-1", text: "Nice doc!" });
     expect(client.request).toHaveBeenCalledWith("comments.create", {
-      documentId: "doc-1",
+      entityType: "document",
+      entityId: "doc-1",
       text: "Nice doc!",
     });
   });
@@ -64,7 +65,7 @@ describe("comment tools", () => {
     client = createMockClient(responseData);
     tools = collectTools(registerCommentTools, client);
     const handler = getToolHandler(tools, "comments_list");
-    const result = await handler({ documentId: "d1" });
+    const result = await handler({ entityType: "document", entityId: "d1" });
     expect(result).toEqual({
       content: [{ type: "text", text: JSON.stringify(responseData, null, 2) }],
     });
