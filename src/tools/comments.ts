@@ -9,10 +9,13 @@ const textResult = (data: unknown) => ({
 export function registerCommentTools(server: McpServer, client: YonoteClient) {
   server.tool(
     "comments_list",
-    "List comments on a document or in a collection.",
+    'List comments for an entity (e.g. entityType: "document").',
     {
-      documentId: z.string().optional().describe("Filter by document ID"),
-      collectionId: z.string().optional().describe("Filter by collection ID"),
+      entityType: z
+        .string()
+        .optional()
+        .describe('Entity type, e.g. "document"'),
+      entityId: z.string().optional().describe("Entity ID"),
       limit: z.number().optional().describe("Number of results"),
       offset: z.number().optional().describe("Pagination offset"),
     },
@@ -22,9 +25,10 @@ export function registerCommentTools(server: McpServer, client: YonoteClient) {
 
   server.tool(
     "comments_create",
-    "Add a comment to a document.",
+    'Add a comment to an entity (e.g. entityType: "document").',
     {
-      documentId: z.string().describe("Document ID to comment on"),
+      entityType: z.string().describe('Entity type, e.g. "document"'),
+      entityId: z.string().describe("Entity ID"),
       text: z.string().optional().describe("Comment text in Markdown"),
       data: z.any().optional().describe("Comment data (ProseMirror JSON)"),
       parentCommentId: z
