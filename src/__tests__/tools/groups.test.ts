@@ -12,8 +12,8 @@ describe("group tools", () => {
     tools = collectTools(registerGroupTools, client);
   });
 
-  it("registers 6 tools", () => {
-    expect(tools).toHaveLength(6);
+  it("registers 8 tools", () => {
+    expect(tools).toHaveLength(8);
   });
 
   it("registers tools with correct names", () => {
@@ -25,6 +25,8 @@ describe("group tools", () => {
       "groups_update",
       "groups_delete",
       "groups_memberships",
+      "groups_add_user",
+      "groups_remove_user",
     ]);
   });
 
@@ -35,6 +37,8 @@ describe("group tools", () => {
     groups_update: "groups.update",
     groups_delete: "groups.delete",
     groups_memberships: "groups.memberships",
+    groups_add_user: "groups.add_user",
+    groups_remove_user: "groups.remove_user",
   };
 
   for (const [toolName, endpoint] of Object.entries(endpointMap)) {
@@ -68,6 +72,15 @@ describe("group tools", () => {
     expect(client.request).toHaveBeenCalledWith("groups.memberships", {
       id: "g-1",
       query: "john",
+    });
+  });
+
+  it("groups_add_user passes id and userId", async () => {
+    const handler = getToolHandler(tools, "groups_add_user");
+    await handler({ id: "g-1", userId: "u-1" });
+    expect(client.request).toHaveBeenCalledWith("groups.add_user", {
+      id: "g-1",
+      userId: "u-1",
     });
   });
 

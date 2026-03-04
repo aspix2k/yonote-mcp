@@ -12,8 +12,8 @@ describe("share tools", () => {
     tools = collectTools(registerShareTools, client);
   });
 
-  it("registers 4 tools", () => {
-    expect(tools).toHaveLength(4);
+  it("registers 5 tools", () => {
+    expect(tools).toHaveLength(5);
   });
 
   it("registers tools with correct names", () => {
@@ -22,7 +22,8 @@ describe("share tools", () => {
       "shares_list",
       "shares_info",
       "shares_create",
-      "shares_delete",
+      "shares_revoke",
+      "shares_update",
     ]);
   });
 
@@ -30,7 +31,8 @@ describe("share tools", () => {
     shares_list: "shares.list",
     shares_info: "shares.info",
     shares_create: "shares.create",
-    shares_delete: "shares.delete",
+    shares_revoke: "shares.revoke",
+    shares_update: "shares.update",
   };
 
   for (const [toolName, endpoint] of Object.entries(endpointMap)) {
@@ -49,11 +51,28 @@ describe("share tools", () => {
     });
   });
 
-  it("shares_delete passes id", async () => {
-    const handler = getToolHandler(tools, "shares_delete");
+  it("shares_revoke passes id", async () => {
+    const handler = getToolHandler(tools, "shares_revoke");
     await handler({ id: "share-1" });
-    expect(client.request).toHaveBeenCalledWith("shares.delete", {
+    expect(client.request).toHaveBeenCalledWith("shares.revoke", {
       id: "share-1",
+    });
+  });
+
+  it("shares_info passes documentId", async () => {
+    const handler = getToolHandler(tools, "shares_info");
+    await handler({ documentId: "doc-1" });
+    expect(client.request).toHaveBeenCalledWith("shares.info", {
+      documentId: "doc-1",
+    });
+  });
+
+  it("shares_update passes id and published", async () => {
+    const handler = getToolHandler(tools, "shares_update");
+    await handler({ id: "s-1", published: true });
+    expect(client.request).toHaveBeenCalledWith("shares.update", {
+      id: "s-1",
+      published: true,
     });
   });
 

@@ -12,18 +12,25 @@ describe("auth tools", () => {
     tools = collectTools(registerAuthTools, client);
   });
 
-  it("registers 1 tool", () => {
-    expect(tools).toHaveLength(1);
+  it("registers 2 tools", () => {
+    expect(tools).toHaveLength(2);
   });
 
-  it("registers auth_info tool", () => {
-    expect(tools[0].name).toBe("auth_info");
+  it("registers tools with correct names", () => {
+    const names = tools.map((t) => t.name);
+    expect(names).toEqual(["auth_info", "auth_config"]);
   });
 
   it("auth_info calls auth.info with no params", async () => {
     const handler = getToolHandler(tools, "auth_info");
     await handler({});
     expect(client.request).toHaveBeenCalledWith("auth.info");
+  });
+
+  it("auth_config calls auth.config with no params", async () => {
+    const handler = getToolHandler(tools, "auth_config");
+    await handler({});
+    expect(client.request).toHaveBeenCalledWith("auth.config");
   });
 
   it("returns formatted text result", async () => {

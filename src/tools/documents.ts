@@ -9,17 +9,18 @@ const textResult = (data: unknown) => ({
 export function registerDocumentTools(server: McpServer, client: YonoteClient) {
   server.tool(
     "documents_list",
-    "List documents. Filter by collection, user, or status.",
+    "List documents. Filter by collection, user, or other criteria.",
     {
       collectionId: z.string().optional().describe("Filter by collection ID"),
       userId: z.string().optional().describe("Filter by user ID"),
-      query: z.string().optional().describe("Search query"),
-      statusFilter: z
-        .enum(["published", "draft", "archived"])
-        .optional()
-        .describe("Filter by status"),
+      backlinkDocumentId: z.string().optional().describe("Filter by backlink document ID"),
+      parentDocumentId: z.string().optional().describe("Filter by parent document ID"),
+      template: z.boolean().optional().describe("Filter templates"),
+      sort: z.string().optional().describe("Sort field"),
+      direction: z.enum(["ASC", "DESC"]).optional().describe("Sort direction"),
       limit: z.number().optional().describe("Number of results (default 25)"),
       offset: z.number().optional().describe("Pagination offset"),
+      nextPath: z.string().optional().describe("Next page path for pagination"),
     },
     async (params) => textResult(await client.request("documents.list", params)),
   );
@@ -41,12 +42,12 @@ export function registerDocumentTools(server: McpServer, client: YonoteClient) {
       query: z.string().describe("Search query"),
       collectionId: z.string().optional().describe("Filter by collection"),
       userId: z.string().optional().describe("Filter by author"),
-      dateFilter: z
-        .enum(["day", "week", "month", "year"])
-        .optional()
-        .describe("Date range filter"),
+      dateFilter: z.string().optional().describe("Date range filter"),
+      includeArchived: z.boolean().optional().describe("Include archived documents"),
+      includeDrafts: z.boolean().optional().describe("Include draft documents"),
       limit: z.number().optional().describe("Number of results"),
       offset: z.number().optional().describe("Pagination offset"),
+      nextPath: z.string().optional().describe("Next page path for pagination"),
     },
     async (params) =>
       textResult(await client.request("documents.search", params)),
@@ -58,10 +59,8 @@ export function registerDocumentTools(server: McpServer, client: YonoteClient) {
     {
       query: z.string().describe("Title search query"),
       collectionId: z.string().optional().describe("Filter by collection"),
-      statusFilter: z
-        .enum(["published", "draft", "archived"])
-        .optional()
-        .describe("Filter by status"),
+      isPublished: z.boolean().optional().describe("Filter by published status"),
+      nextPath: z.string().optional().describe("Next page path for pagination"),
     },
     async (params) =>
       textResult(await client.request("documents.search_titles", params)),
@@ -69,15 +68,16 @@ export function registerDocumentTools(server: McpServer, client: YonoteClient) {
 
   server.tool(
     "documents_create",
-    "Create a new document. Provide title and/or text in Markdown.",
+    "Create a new document. Provide title and text in Markdown.",
     {
-      title: z.string().optional().describe("Document title"),
+      title: z.string().describe("Document title"),
       text: z.string().optional().describe("Document body in Markdown"),
-      collectionId: z.string().optional().describe("Collection to place document in"),
+      collectionId: z.string().describe("Collection to place document in"),
       parentDocumentId: z
         .string()
         .optional()
         .describe("Parent document ID for nesting"),
+      templateId: z.string().optional().describe("Template ID to use"),
       template: z.boolean().optional().describe("Create as template"),
       publish: z.boolean().optional().describe("Publish immediately (default false)"),
     },
@@ -97,6 +97,8 @@ export function registerDocumentTools(server: McpServer, client: YonoteClient) {
         .optional()
         .describe("Append text instead of replacing"),
       publish: z.boolean().optional().describe("Publish the document"),
+      template: z.boolean().optional().describe("Set as template"),
+      done: z.boolean().optional().describe("Mark task as done"),
     },
     async (params) =>
       textResult(await client.request("documents.update", params)),
@@ -104,13 +106,9 @@ export function registerDocumentTools(server: McpServer, client: YonoteClient) {
 
   server.tool(
     "documents_delete",
-    "Move a document to trash or permanently delete it.",
+    "Move a document to trash.",
     {
       id: z.string().describe("Document ID"),
-      permanent: z
-        .boolean()
-        .optional()
-        .describe("Permanently delete (default: move to trash)"),
     },
     async (params) =>
       textResult(await client.request("documents.delete", params)),
@@ -131,10 +129,6 @@ export function registerDocumentTools(server: McpServer, client: YonoteClient) {
     "Restore an archived or deleted document.",
     {
       id: z.string().describe("Document ID"),
-      collectionId: z
-        .string()
-        .optional()
-        .describe("Collection to restore into"),
       revisionId: z
         .string()
         .optional()
@@ -154,26 +148,21 @@ export function registerDocumentTools(server: McpServer, client: YonoteClient) {
         .string()
         .optional()
         .describe("Target parent document ID"),
-      index: z.number().optional().describe("Position index"),
     },
     async (params) =>
       textResult(await client.request("documents.move", params)),
   );
 
   server.tool(
-    "documents_duplicate",
+    "documents_copy",
     "Create a copy of a document.",
     {
-      id: z.string().describe("Document ID to duplicate"),
-      title: z.string().optional().describe("Title for the copy"),
-      publish: z.boolean().optional().describe("Publish the copy"),
-      recursive: z
-        .boolean()
-        .optional()
-        .describe("Also duplicate child documents"),
+      id: z.string().describe("Document ID to copy"),
+      collectionId: z.string().optional().describe("Target collection ID"),
+      parentDocumentId: z.string().optional().describe("Target parent document ID"),
     },
     async (params) =>
-      textResult(await client.request("documents.duplicate", params)),
+      textResult(await client.request("documents.copy", params)),
   );
 
   server.tool(
@@ -181,12 +170,12 @@ export function registerDocumentTools(server: McpServer, client: YonoteClient) {
     "List current user's draft documents.",
     {
       collectionId: z.string().optional().describe("Filter by collection"),
-      dateFilter: z
-        .enum(["day", "week", "month", "year"])
-        .optional()
-        .describe("Date range filter"),
+      dateFilter: z.string().optional().describe("Date range filter"),
+      sort: z.string().optional().describe("Sort field"),
+      direction: z.enum(["ASC", "DESC"]).optional().describe("Sort direction"),
       limit: z.number().optional().describe("Number of results"),
       offset: z.number().optional().describe("Pagination offset"),
+      nextPath: z.string().optional().describe("Next page path for pagination"),
     },
     async (params) =>
       textResult(await client.request("documents.drafts", params)),
@@ -196,8 +185,11 @@ export function registerDocumentTools(server: McpServer, client: YonoteClient) {
     "documents_viewed",
     "List recently viewed documents.",
     {
+      sort: z.string().optional().describe("Sort field"),
+      direction: z.enum(["ASC", "DESC"]).optional().describe("Sort direction"),
       limit: z.number().optional().describe("Number of results"),
       offset: z.number().optional().describe("Pagination offset"),
+      nextPath: z.string().optional().describe("Next page path for pagination"),
     },
     async (params) =>
       textResult(await client.request("documents.viewed", params)),
@@ -258,5 +250,104 @@ export function registerDocumentTools(server: McpServer, client: YonoteClient) {
     },
     async (params) =>
       textResult(await client.request("documents.documents", params)),
+  );
+
+  server.tool(
+    "documents_import",
+    "Import a document from a file.",
+    {
+      file: z.string().describe("File content or URL"),
+      collectionId: z.string().optional().describe("Collection ID"),
+      parentDocumentId: z.string().optional().describe("Parent document ID"),
+      template: z.boolean().optional().describe("Import as template"),
+      publish: z.boolean().optional().describe("Publish immediately"),
+    },
+    async (params) =>
+      textResult(await client.request("documents.import", params)),
+  );
+
+  server.tool(
+    "documents_export",
+    "Export a document.",
+    {
+      id: z.string().optional().describe("Document ID"),
+      shareId: z.string().optional().describe("Share ID"),
+    },
+    async (params) =>
+      textResult(await client.request("documents.export", params)),
+  );
+
+  server.tool(
+    "documents_starred",
+    "List starred documents.",
+    {
+      sort: z.string().optional().describe("Sort field"),
+      direction: z.enum(["ASC", "DESC"]).optional().describe("Sort direction"),
+      limit: z.number().optional().describe("Number of results"),
+      offset: z.number().optional().describe("Pagination offset"),
+      nextPath: z.string().optional().describe("Next page path for pagination"),
+    },
+    async (params) =>
+      textResult(await client.request("documents.starred", params)),
+  );
+
+  server.tool(
+    "documents_pinned",
+    "List pinned documents in a collection.",
+    {
+      collectionId: z.string().describe("Collection ID"),
+    },
+    async (params) =>
+      textResult(await client.request("documents.pinned", params)),
+  );
+
+  server.tool(
+    "documents_templatize",
+    "Convert a document into a template.",
+    {
+      id: z.string().describe("Document ID"),
+    },
+    async (params) =>
+      textResult(await client.request("documents.templatize", params)),
+  );
+
+  server.tool(
+    "documents_star",
+    "Star a document.",
+    {
+      id: z.string().describe("Document ID"),
+    },
+    async (params) =>
+      textResult(await client.request("documents.star", params)),
+  );
+
+  server.tool(
+    "documents_unstar",
+    "Remove star from a document.",
+    {
+      id: z.string().describe("Document ID"),
+    },
+    async (params) =>
+      textResult(await client.request("documents.unstar", params)),
+  );
+
+  server.tool(
+    "documents_pin",
+    "Pin a document in its collection.",
+    {
+      id: z.string().describe("Document ID"),
+    },
+    async (params) =>
+      textResult(await client.request("documents.pin", params)),
+  );
+
+  server.tool(
+    "documents_unpin",
+    "Unpin a document from its collection.",
+    {
+      id: z.string().describe("Document ID"),
+    },
+    async (params) =>
+      textResult(await client.request("documents.unpin", params)),
   );
 }

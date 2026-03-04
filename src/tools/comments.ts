@@ -11,13 +11,11 @@ export function registerCommentTools(server: McpServer, client: YonoteClient) {
     "comments_list",
     'List comments for an entity (e.g. entityType: "document").',
     {
-      entityType: z
-        .string()
-        .optional()
-        .describe('Entity type, e.g. "document"'),
+      entityType: z.string().describe('Entity type, e.g. "document"'),
       entityId: z.string().optional().describe("Entity ID"),
       limit: z.number().optional().describe("Number of results"),
       offset: z.number().optional().describe("Pagination offset"),
+      nextPath: z.string().optional().describe("Next page path for pagination"),
     },
     async (params) =>
       textResult(await client.request("comments.list", params)),
@@ -29,8 +27,7 @@ export function registerCommentTools(server: McpServer, client: YonoteClient) {
     {
       entityType: z.string().describe('Entity type, e.g. "document"'),
       entityId: z.string().describe("Entity ID"),
-      text: z.string().optional().describe("Comment text in Markdown"),
-      data: z.any().optional().describe("Comment data (ProseMirror JSON)"),
+      text: z.string().describe("Comment text in Markdown"),
       parentCommentId: z
         .string()
         .optional()
@@ -45,7 +42,7 @@ export function registerCommentTools(server: McpServer, client: YonoteClient) {
     "Update an existing comment.",
     {
       id: z.string().describe("Comment ID"),
-      data: z.any().describe("Updated comment data (ProseMirror JSON)"),
+      text: z.string().describe("Updated comment text in Markdown"),
     },
     async (params) =>
       textResult(await client.request("comments.update", params)),
@@ -59,5 +56,40 @@ export function registerCommentTools(server: McpServer, client: YonoteClient) {
     },
     async (params) =>
       textResult(await client.request("comments.delete", params)),
+  );
+
+  server.tool(
+    "comments_resolve",
+    "Resolve a comment thread.",
+    {
+      id: z.string().describe("Comment ID"),
+    },
+    async (params) =>
+      textResult(await client.request("comments.resolve", params)),
+  );
+
+  server.tool(
+    "comments_info",
+    "Get information about a comment.",
+    {
+      id: z.string().optional().describe("Comment ID"),
+      paranoid: z.boolean().optional().describe("Include deleted comments"),
+    },
+    async (params) =>
+      textResult(await client.request("comments.info", params)),
+  );
+
+  server.tool(
+    "comments_thread",
+    "Get a comment thread.",
+    {
+      id: z.string().optional().describe("Comment ID"),
+      paranoid: z.boolean().optional().describe("Include deleted comments"),
+      limit: z.number().optional().describe("Number of results"),
+      offset: z.number().optional().describe("Pagination offset"),
+      nextPath: z.string().optional().describe("Next page path for pagination"),
+    },
+    async (params) =>
+      textResult(await client.request("comments.thread", params)),
   );
 }

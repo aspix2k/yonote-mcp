@@ -12,4 +12,11 @@ export function registerAuthTools(server: McpServer, client: YonoteClient) {
     {},
     async () => textResult(await client.request("auth.info")),
   );
+
+  server.tool(
+    "auth_config",
+    "Get authentication configuration for the workspace.",
+    {},
+    async () => textResult(await client.request("auth.config")),
+  );
 }

@@ -11,9 +11,11 @@ export function registerGroupTools(server: McpServer, client: YonoteClient) {
     "groups_list",
     "List all groups in the workspace.",
     {
-      query: z.string().optional().describe("Search by group name"),
+      sort: z.string().optional().describe("Sort field"),
+      direction: z.enum(["ASC", "DESC"]).optional().describe("Sort direction"),
       limit: z.number().optional().describe("Number of results"),
       offset: z.number().optional().describe("Pagination offset"),
+      nextPath: z.string().optional().describe("Next page path for pagination"),
     },
     async (params) => textResult(await client.request("groups.list", params)),
   );
@@ -63,8 +65,31 @@ export function registerGroupTools(server: McpServer, client: YonoteClient) {
       query: z.string().optional().describe("Filter by member name"),
       limit: z.number().optional().describe("Number of results"),
       offset: z.number().optional().describe("Pagination offset"),
+      nextPath: z.string().optional().describe("Next page path for pagination"),
     },
     async (params) =>
       textResult(await client.request("groups.memberships", params)),
+  );
+
+  server.tool(
+    "groups_add_user",
+    "Add a user to a group.",
+    {
+      id: z.string().describe("Group ID"),
+      userId: z.string().describe("User ID"),
+    },
+    async (params) =>
+      textResult(await client.request("groups.add_user", params)),
+  );
+
+  server.tool(
+    "groups_remove_user",
+    "Remove a user from a group.",
+    {
+      id: z.string().describe("Group ID"),
+      userId: z.string().describe("User ID"),
+    },
+    async (params) =>
+      textResult(await client.request("groups.remove_user", params)),
   );
 }

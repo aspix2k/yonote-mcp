@@ -12,8 +12,8 @@ describe("collection tools", () => {
     tools = collectTools(registerCollectionTools, client);
   });
 
-  it("registers 10 tools", () => {
-    expect(tools).toHaveLength(10);
+  it("registers 14 tools", () => {
+    expect(tools).toHaveLength(14);
   });
 
   it("registers tools with correct names", () => {
@@ -29,6 +29,10 @@ describe("collection tools", () => {
       "collections_remove_user",
       "collections_memberships",
       "collections_export",
+      "collections_add_group",
+      "collections_remove_group",
+      "collections_group_memberships",
+      "collections_export_all",
     ]);
   });
 
@@ -43,6 +47,10 @@ describe("collection tools", () => {
     collections_remove_user: "collections.remove_user",
     collections_memberships: "collections.memberships",
     collections_export: "collections.export",
+    collections_add_group: "collections.add_group",
+    collections_remove_group: "collections.remove_group",
+    collections_group_memberships: "collections.group_memberships",
+    collections_export_all: "collections.export_all",
   };
 
   for (const [toolName, endpoint] of Object.entries(endpointMap)) {
@@ -53,13 +61,13 @@ describe("collection tools", () => {
     });
   }
 
-  it("collections_create passes name, description, permission", async () => {
+  it("collections_create passes name, description, private", async () => {
     const handler = getToolHandler(tools, "collections_create");
-    await handler({ name: "My Collection", description: "desc", permission: "read_write" });
+    await handler({ name: "My Collection", description: "desc", private: true });
     expect(client.request).toHaveBeenCalledWith("collections.create", {
       name: "My Collection",
       description: "desc",
-      permission: "read_write",
+      private: true,
     });
   });
 
@@ -72,22 +80,29 @@ describe("collection tools", () => {
     });
   });
 
-  it("collections_add_user passes id, userId, permission", async () => {
+  it("collections_add_user passes id and userId", async () => {
     const handler = getToolHandler(tools, "collections_add_user");
-    await handler({ id: "col-1", userId: "u-1", permission: "admin" });
+    await handler({ id: "col-1", userId: "u-1" });
     expect(client.request).toHaveBeenCalledWith("collections.add_user", {
       id: "col-1",
       userId: "u-1",
-      permission: "admin",
     });
   });
 
-  it("collections_export passes id and format", async () => {
+  it("collections_export passes id", async () => {
     const handler = getToolHandler(tools, "collections_export");
-    await handler({ id: "col-1", format: "html" });
+    await handler({ id: "col-1" });
     expect(client.request).toHaveBeenCalledWith("collections.export", {
       id: "col-1",
-      format: "html",
+    });
+  });
+
+  it("collections_add_group passes id and groupId", async () => {
+    const handler = getToolHandler(tools, "collections_add_group");
+    await handler({ id: "col-1", groupId: "g-1" });
+    expect(client.request).toHaveBeenCalledWith("collections.add_group", {
+      id: "col-1",
+      groupId: "g-1",
     });
   });
 

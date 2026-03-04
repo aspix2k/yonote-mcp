@@ -9,15 +9,15 @@ const textResult = (data: unknown) => ({
 export function registerUserTools(server: McpServer, client: YonoteClient) {
   server.tool(
     "users_list",
-    "List workspace members. Can filter by query or status.",
+    "List workspace members.",
     {
       query: z.string().optional().describe("Search by name or email"),
-      status: z
-        .enum(["active", "suspended", "invited", "all"])
-        .optional()
-        .describe("Filter by user status"),
+      filter: z.string().optional().describe("Filter users"),
+      sort: z.string().optional().describe("Sort field"),
+      direction: z.enum(["ASC", "DESC"]).optional().describe("Sort direction"),
       limit: z.number().optional().describe("Number of results"),
       offset: z.number().optional().describe("Pagination offset"),
+      nextPath: z.string().optional().describe("Next page path for pagination"),
     },
     async (params) => textResult(await client.request("users.list", params)),
   );
@@ -62,5 +62,42 @@ export function registerUserTools(server: McpServer, client: YonoteClient) {
     },
     async (params) =>
       textResult(await client.request("users.activate", params)),
+  );
+
+  server.tool(
+    "users_update",
+    "Update current user's profile.",
+    {
+      name: z.string().optional().describe("New display name"),
+      avatarUrl: z.string().optional().describe("New avatar URL"),
+    },
+    async (params) => textResult(await client.request("users.update", params)),
+  );
+
+  server.tool(
+    "users_promote",
+    "Promote a user to admin.",
+    {
+      id: z.string().describe("User ID to promote"),
+    },
+    async (params) => textResult(await client.request("users.promote", params)),
+  );
+
+  server.tool(
+    "users_demote",
+    "Demote a user from admin.",
+    {
+      id: z.string().describe("User ID to demote"),
+    },
+    async (params) => textResult(await client.request("users.demote", params)),
+  );
+
+  server.tool(
+    "users_delete",
+    "Delete a user account.",
+    {
+      id: z.string().describe("User ID to delete"),
+    },
+    async (params) => textResult(await client.request("users.delete", params)),
   );
 }

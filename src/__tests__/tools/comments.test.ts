@@ -12,8 +12,8 @@ describe("comment tools", () => {
     tools = collectTools(registerCommentTools, client);
   });
 
-  it("registers 4 tools", () => {
-    expect(tools).toHaveLength(4);
+  it("registers 7 tools", () => {
+    expect(tools).toHaveLength(7);
   });
 
   it("registers tools with correct names", () => {
@@ -23,6 +23,9 @@ describe("comment tools", () => {
       "comments_create",
       "comments_update",
       "comments_delete",
+      "comments_resolve",
+      "comments_info",
+      "comments_thread",
     ]);
   });
 
@@ -31,6 +34,9 @@ describe("comment tools", () => {
     comments_create: "comments.create",
     comments_update: "comments.update",
     comments_delete: "comments.delete",
+    comments_resolve: "comments.resolve",
+    comments_info: "comments.info",
+    comments_thread: "comments.thread",
   };
 
   for (const [toolName, endpoint] of Object.entries(endpointMap)) {
@@ -51,12 +57,20 @@ describe("comment tools", () => {
     });
   });
 
-  it("comments_update passes id and data", async () => {
+  it("comments_update passes id and text", async () => {
     const handler = getToolHandler(tools, "comments_update");
-    await handler({ id: "c-1", data: { type: "doc" } });
+    await handler({ id: "c-1", text: "Updated" });
     expect(client.request).toHaveBeenCalledWith("comments.update", {
       id: "c-1",
-      data: { type: "doc" },
+      text: "Updated",
+    });
+  });
+
+  it("comments_resolve passes id", async () => {
+    const handler = getToolHandler(tools, "comments_resolve");
+    await handler({ id: "c-1" });
+    expect(client.request).toHaveBeenCalledWith("comments.resolve", {
+      id: "c-1",
     });
   });
 

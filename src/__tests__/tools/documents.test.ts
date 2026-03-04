@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { createMockClient, collectTools, getToolHandler } from "../helpers.js";
 import { registerDocumentTools } from "../../tools/documents.js";
 import type { YonoteClient } from "../../api-client.js";
@@ -12,8 +12,8 @@ describe("document tools", () => {
     tools = collectTools(registerDocumentTools, client);
   });
 
-  it("registers 18 tools", () => {
-    expect(tools).toHaveLength(18);
+  it("registers 27 tools", () => {
+    expect(tools).toHaveLength(27);
   });
 
   it("registers tools with correct names", () => {
@@ -29,7 +29,7 @@ describe("document tools", () => {
       "documents_archive",
       "documents_restore",
       "documents_move",
-      "documents_duplicate",
+      "documents_copy",
       "documents_drafts",
       "documents_viewed",
       "documents_unpublish",
@@ -37,6 +37,15 @@ describe("document tools", () => {
       "documents_add_user",
       "documents_remove_user",
       "documents_children",
+      "documents_import",
+      "documents_export",
+      "documents_starred",
+      "documents_pinned",
+      "documents_templatize",
+      "documents_star",
+      "documents_unstar",
+      "documents_pin",
+      "documents_unpin",
     ]);
   });
 
@@ -51,7 +60,7 @@ describe("document tools", () => {
     documents_archive: "documents.archive",
     documents_restore: "documents.restore",
     documents_move: "documents.move",
-    documents_duplicate: "documents.duplicate",
+    documents_copy: "documents.copy",
     documents_drafts: "documents.drafts",
     documents_viewed: "documents.viewed",
     documents_unpublish: "documents.unpublish",
@@ -59,6 +68,15 @@ describe("document tools", () => {
     documents_add_user: "documents.add_user",
     documents_remove_user: "documents.remove_user",
     documents_children: "documents.documents",
+    documents_import: "documents.import",
+    documents_export: "documents.export",
+    documents_starred: "documents.starred",
+    documents_pinned: "documents.pinned",
+    documents_templatize: "documents.templatize",
+    documents_star: "documents.star",
+    documents_unstar: "documents.unstar",
+    documents_pin: "documents.pin",
+    documents_unpin: "documents.unpin",
   };
 
   for (const [toolName, endpoint] of Object.entries(endpointMap)) {
@@ -116,12 +134,11 @@ describe("document tools", () => {
     });
   });
 
-  it("documents_delete passes id and permanent", async () => {
+  it("documents_delete passes id", async () => {
     const handler = getToolHandler(tools, "documents_delete");
-    await handler({ id: "doc-1", permanent: true });
+    await handler({ id: "doc-1" });
     expect(client.request).toHaveBeenCalledWith("documents.delete", {
       id: "doc-1",
-      permanent: true,
     });
   });
 
@@ -142,6 +159,15 @@ describe("document tools", () => {
       id: "doc-1",
       userId: "u-1",
       permission: "read_write",
+    });
+  });
+
+  it("documents_copy passes id and collectionId", async () => {
+    const handler = getToolHandler(tools, "documents_copy");
+    await handler({ id: "doc-1", collectionId: "c2" });
+    expect(client.request).toHaveBeenCalledWith("documents.copy", {
+      id: "doc-1",
+      collectionId: "c2",
     });
   });
 

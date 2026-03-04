@@ -14,13 +14,9 @@ export function registerCollectionTools(
     "collections_list",
     "List all accessible collections.",
     {
-      query: z.string().optional().describe("Search query"),
-      statusFilter: z
-        .enum(["active", "archived"])
-        .optional()
-        .describe("Filter by status"),
       limit: z.number().optional().describe("Number of results"),
       offset: z.number().optional().describe("Pagination offset"),
+      nextPath: z.string().optional().describe("Next page path for pagination"),
     },
     async (params) =>
       textResult(await client.request("collections.list", params)),
@@ -42,16 +38,8 @@ export function registerCollectionTools(
     {
       name: z.string().describe("Collection name"),
       description: z.string().optional().describe("Collection description"),
-      permission: z
-        .enum(["read", "read_write"])
-        .optional()
-        .describe("Default permission for workspace members"),
       color: z.string().optional().describe("Collection color (hex)"),
-      icon: z.string().optional().describe("Collection icon (emoji)"),
-      sharing: z
-        .boolean()
-        .optional()
-        .describe("Allow sharing documents publicly"),
+      private: z.boolean().optional().describe("Make collection private"),
     },
     async (params) =>
       textResult(await client.request("collections.create", params)),
@@ -64,13 +52,7 @@ export function registerCollectionTools(
       id: z.string().describe("Collection ID"),
       name: z.string().optional().describe("New name"),
       description: z.string().optional().describe("New description"),
-      permission: z
-        .enum(["read", "read_write"])
-        .optional()
-        .describe("Default permission"),
       color: z.string().optional().describe("New color (hex)"),
-      icon: z.string().optional().describe("New icon (emoji)"),
-      sharing: z.boolean().optional().describe("Allow sharing"),
     },
     async (params) =>
       textResult(await client.request("collections.update", params)),
@@ -102,10 +84,6 @@ export function registerCollectionTools(
     {
       id: z.string().describe("Collection ID"),
       userId: z.string().describe("User ID"),
-      permission: z
-        .enum(["read", "read_write", "admin"])
-        .optional()
-        .describe("Permission level"),
     },
     async (params) =>
       textResult(await client.request("collections.add_user", params)),
@@ -128,12 +106,9 @@ export function registerCollectionTools(
     {
       id: z.string().describe("Collection ID"),
       query: z.string().optional().describe("Filter by user name"),
-      permission: z
-        .enum(["read", "read_write", "admin"])
-        .optional()
-        .describe("Filter by permission"),
       limit: z.number().optional().describe("Number of results"),
       offset: z.number().optional().describe("Pagination offset"),
+      nextPath: z.string().optional().describe("Next page path for pagination"),
     },
     async (params) =>
       textResult(await client.request("collections.memberships", params)),
@@ -141,15 +116,57 @@ export function registerCollectionTools(
 
   server.tool(
     "collections_export",
-    "Export a collection in the specified format.",
+    "Export a collection.",
     {
       id: z.string().describe("Collection ID"),
-      format: z
-        .enum(["outline-markdown", "html", "json"])
-        .optional()
-        .describe("Export format"),
     },
     async (params) =>
       textResult(await client.request("collections.export", params)),
+  );
+
+  server.tool(
+    "collections_add_group",
+    "Grant a group access to a collection.",
+    {
+      id: z.string().describe("Collection ID"),
+      groupId: z.string().describe("Group ID"),
+    },
+    async (params) =>
+      textResult(await client.request("collections.add_group", params)),
+  );
+
+  server.tool(
+    "collections_remove_group",
+    "Revoke a group's access to a collection.",
+    {
+      id: z.string().describe("Collection ID"),
+      groupId: z.string().describe("Group ID"),
+    },
+    async (params) =>
+      textResult(await client.request("collections.remove_group", params)),
+  );
+
+  server.tool(
+    "collections_group_memberships",
+    "List group memberships of a collection.",
+    {
+      id: z.string().describe("Collection ID"),
+      query: z.string().optional().describe("Filter by group name"),
+      limit: z.number().optional().describe("Number of results"),
+      offset: z.number().optional().describe("Pagination offset"),
+      nextPath: z.string().optional().describe("Next page path for pagination"),
+    },
+    async (params) =>
+      textResult(
+        await client.request("collections.group_memberships", params),
+      ),
+  );
+
+  server.tool(
+    "collections_export_all",
+    "Export all collections.",
+    {},
+    async (params) =>
+      textResult(await client.request("collections.export_all", params)),
   );
 }

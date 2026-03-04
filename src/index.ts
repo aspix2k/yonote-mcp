@@ -15,6 +15,15 @@ import { registerRevisionTools } from "./tools/revisions.js";
 import { registerEventTools } from "./tools/events.js";
 import { registerViewTools } from "./tools/views.js";
 import { registerAuthTools } from "./tools/auth.js";
+import { registerDatabaseTools } from "./tools/database.js";
+import { registerAttachmentTools } from "./tools/attachments.js";
+import { registerFileOperationTools } from "./tools/file-operations.js";
+import { registerSubscriptionTools } from "./tools/subscriptions.js";
+import { registerSyncBlockTools } from "./tools/sync-blocks.js";
+import { registerIntegrationTools } from "./tools/integrations.js";
+import { registerLdapTools } from "./tools/ldap.js";
+import { registerProviderTools } from "./tools/providers.js";
+import { registerSharePasswordTools } from "./tools/share-passwords.js";
 
 export function parseArgs(argv: string[] = process.argv.slice(2)) {
   let token: string | undefined;
@@ -60,6 +69,15 @@ export function createMcpServer(token: string, baseUrl: string): McpServer {
   registerEventTools(server, client);
   registerViewTools(server, client);
   registerAuthTools(server, client);
+  registerDatabaseTools(server, client);
+  registerAttachmentTools(server, client);
+  registerFileOperationTools(server, client);
+  registerSubscriptionTools(server, client);
+  registerSyncBlockTools(server, client);
+  registerIntegrationTools(server, client);
+  registerLdapTools(server, client);
+  registerProviderTools(server, client);
+  registerSharePasswordTools(server, client);
 
   return server;
 }

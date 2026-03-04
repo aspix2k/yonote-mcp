@@ -12,8 +12,8 @@ describe("user tools", () => {
     tools = collectTools(registerUserTools, client);
   });
 
-  it("registers 5 tools", () => {
-    expect(tools).toHaveLength(5);
+  it("registers 9 tools", () => {
+    expect(tools).toHaveLength(9);
   });
 
   it("registers tools with correct names", () => {
@@ -24,6 +24,10 @@ describe("user tools", () => {
       "users_create",
       "users_suspend",
       "users_activate",
+      "users_update",
+      "users_promote",
+      "users_demote",
+      "users_delete",
     ]);
   });
 
@@ -33,6 +37,10 @@ describe("user tools", () => {
     users_create: "users.create",
     users_suspend: "users.suspend",
     users_activate: "users.activate",
+    users_update: "users.update",
+    users_promote: "users.promote",
+    users_demote: "users.demote",
+    users_delete: "users.delete",
   };
 
   for (const [toolName, endpoint] of Object.entries(endpointMap)) {
@@ -43,12 +51,12 @@ describe("user tools", () => {
     });
   }
 
-  it("users_list passes query and status", async () => {
+  it("users_list passes query and filter", async () => {
     const handler = getToolHandler(tools, "users_list");
-    await handler({ query: "john", status: "active" });
+    await handler({ query: "john", filter: "active" });
     expect(client.request).toHaveBeenCalledWith("users.list", {
       query: "john",
-      status: "active",
+      filter: "active",
     });
   });
 
@@ -59,6 +67,15 @@ describe("user tools", () => {
       email: "test@test.com",
       name: "Test User",
       role: "member",
+    });
+  });
+
+  it("users_update passes name and avatarUrl", async () => {
+    const handler = getToolHandler(tools, "users_update");
+    await handler({ name: "New Name", avatarUrl: "https://example.com/avatar.png" });
+    expect(client.request).toHaveBeenCalledWith("users.update", {
+      name: "New Name",
+      avatarUrl: "https://example.com/avatar.png",
     });
   });
 

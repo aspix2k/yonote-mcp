@@ -9,12 +9,13 @@ const textResult = (data: unknown) => ({
 export function registerShareTools(server: McpServer, client: YonoteClient) {
   server.tool(
     "shares_list",
-    "List shared documents/collections.",
+    "List shared documents.",
     {
-      documentId: z.string().optional().describe("Filter by document ID"),
-      collectionId: z.string().optional().describe("Filter by collection ID"),
+      sort: z.string().optional().describe("Sort field"),
+      direction: z.enum(["ASC", "DESC"]).optional().describe("Sort direction"),
       limit: z.number().optional().describe("Number of results"),
       offset: z.number().optional().describe("Pagination offset"),
+      nextPath: z.string().optional().describe("Next page path for pagination"),
     },
     async (params) => textResult(await client.request("shares.list", params)),
   );
@@ -24,7 +25,7 @@ export function registerShareTools(server: McpServer, client: YonoteClient) {
     "Get information about a share link.",
     {
       id: z.string().optional().describe("Share ID"),
-      shareId: z.string().optional().describe("Public share ID"),
+      documentId: z.string().optional().describe("Document ID"),
     },
     async (params) => textResult(await client.request("shares.info", params)),
   );
@@ -39,11 +40,25 @@ export function registerShareTools(server: McpServer, client: YonoteClient) {
   );
 
   server.tool(
-    "shares_delete",
+    "shares_revoke",
     "Revoke a public share link.",
     {
       id: z.string().describe("Share ID to revoke"),
     },
-    async (params) => textResult(await client.request("shares.delete", params)),
+    async (params) => textResult(await client.request("shares.revoke", params)),
+  );
+
+  server.tool(
+    "shares_update",
+    "Update a share link's properties.",
+    {
+      id: z.string().describe("Share ID"),
+      published: z.boolean().optional().describe("Published status"),
+      includeChildDocuments: z.boolean().optional().describe("Include child documents"),
+      exposesAt: z.string().optional().describe("Expose at date (ISO 8601)"),
+      expiresAt: z.string().optional().describe("Expire at date (ISO 8601)"),
+      link: z.string().optional().describe("Custom link slug"),
+    },
+    async (params) => textResult(await client.request("shares.update", params)),
   );
 }
