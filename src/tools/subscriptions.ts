@@ -1,18 +1,20 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { ToolRegistrar } from "../tool-registry.js";
 import { z } from "zod";
 import { YonoteClient } from "../api-client.js";
+import { textResult } from "../tool-result.js";
 
-const textResult = (data: unknown) => ({
-  content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-});
-
-export function registerSubscriptionTools(server: McpServer, client: YonoteClient) {
+export function registerSubscriptionTools(
+  server: ToolRegistrar,
+  client: YonoteClient,
+) {
   server.tool(
     "subscriptions_create",
     "Subscribe to document events.",
     {
       documentId: z.string().describe("Document ID"),
-      event: z.string().describe("Event type to subscribe to"),
+      event: z
+        .literal("document.update")
+        .describe("Event type to subscribe to"),
     },
     async (params) =>
       textResult(await client.request("subscriptions.create", params)),
@@ -23,7 +25,7 @@ export function registerSubscriptionTools(server: McpServer, client: YonoteClien
     "Get subscription information.",
     {
       documentId: z.string().describe("Document ID"),
-      event: z.string().describe("Event type"),
+      event: z.literal("document.update").describe("Event type"),
     },
     async (params) =>
       textResult(await client.request("subscriptions.info", params)),

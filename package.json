@@ -1,23 +1,71 @@
 {
   "name": "yonote-mcp",
   "version": "1.0.0",
-  "description": "MCP server for Yonote API",
+  "description": "MCP server for Yonote with stdio and Streamable HTTP transports",
   "type": "module",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "yonote-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "docs",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "LICENSE",
+    "README.md",
+    "SECURITY.md"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aspix2k/yonote-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aspix2k/yonote-mcp/issues"
+  },
+  "homepage": "https://github.com/aspix2k/yonote-mcp#readme",
+  "keywords": [
+    "yonote",
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "codex"
+  ],
+  "license": "GPL-2.0-only",
   "scripts": {
-    "build": "tsc",
+    "clean": "node scripts/clean.mjs",
+    "build": "npm run clean && tsc",
     "start": "node dist/index.js",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:mutation": "stryker run",
+    "typecheck": "tsc --noEmit && tsc --project tsconfig.test.json",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "openapi:check": "npm run build && node scripts/check-openapi.mjs",
+    "check": "npm run typecheck && npm run test:coverage && npm run format:check",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run check && npm run build"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.12.1",
-    "zod": "^3.24.2"
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "zod": "4.4.3"
   },
   "devDependencies": {
-    "@types/node": "^22.13.4",
-    "@vitest/coverage-v8": "^3.2.4",
-    "typescript": "^5.7.3",
-    "vitest": "^3.0.5"
+    "@stryker-mutator/core": "9.6.1",
+    "@stryker-mutator/vitest-runner": "9.6.1",
+    "@types/express": "5.0.6",
+    "@types/node": "26.1.1",
+    "@vitest/coverage-v8": "4.1.10",
+    "prettier": "3.9.5",
+    "typescript": "7.0.2",
+    "vitest": "4.1.10"
+  },
+  "overrides": {
+    "qs": "6.15.3"
   }
 }

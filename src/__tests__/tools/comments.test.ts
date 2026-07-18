@@ -49,7 +49,11 @@ describe("comment tools", () => {
 
   it("comments_create passes entityType, entityId and text", async () => {
     const handler = getToolHandler(tools, "comments_create");
-    await handler({ entityType: "document", entityId: "doc-1", text: "Nice doc!" });
+    await handler({
+      entityType: "document",
+      entityId: "doc-1",
+      text: "Nice doc!",
+    });
     expect(client.request).toHaveBeenCalledWith("comments.create", {
       entityType: "document",
       entityId: "doc-1",
@@ -66,11 +70,12 @@ describe("comment tools", () => {
     });
   });
 
-  it("comments_resolve passes id", async () => {
+  it("comments_resolve passes the requested state", async () => {
     const handler = getToolHandler(tools, "comments_resolve");
-    await handler({ id: "c-1" });
+    await handler({ id: "c-1", isResolved: false });
     expect(client.request).toHaveBeenCalledWith("comments.resolve", {
       id: "c-1",
+      isResolved: false,
     });
   });
 

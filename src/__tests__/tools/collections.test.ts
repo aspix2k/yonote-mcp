@@ -63,7 +63,11 @@ describe("collection tools", () => {
 
   it("collections_create passes name, description, private", async () => {
     const handler = getToolHandler(tools, "collections_create");
-    await handler({ name: "My Collection", description: "desc", private: true });
+    await handler({
+      name: "My Collection",
+      description: "desc",
+      private: true,
+    });
     expect(client.request).toHaveBeenCalledWith("collections.create", {
       name: "My Collection",
       description: "desc",

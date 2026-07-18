@@ -1,12 +1,12 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { ToolRegistrar } from "../tool-registry.js";
 import { z } from "zod";
 import { YonoteClient } from "../api-client.js";
+import { textResult } from "../tool-result.js";
 
-const textResult = (data: unknown) => ({
-  content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-});
-
-export function registerProviderTools(server: McpServer, client: YonoteClient) {
+export function registerProviderTools(
+  server: ToolRegistrar,
+  client: YonoteClient,
+) {
   server.tool(
     "provider_enable",
     "Enable or disable an authentication provider.",
@@ -32,7 +32,6 @@ export function registerProviderTools(server: McpServer, client: YonoteClient) {
     "provider_info",
     "Get authentication provider information.",
     {},
-    async (params) =>
-      textResult(await client.request("provider.info", params)),
+    async (params) => textResult(await client.request("provider.info", params)),
   );
 }

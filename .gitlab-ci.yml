@@ -3,11 +3,13 @@ stages:
 
 test:
   stage: test
-  image: node:22-alpine
+  image: node:24-alpine
   script:
-    - npm ci
+    - npm ci --ignore-scripts
+    - npm run check
     - npm run build
-    - npm run test:coverage
+    - npm audit --omit=dev
+    - npm pack --dry-run
   coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
   artifacts:
     when: always

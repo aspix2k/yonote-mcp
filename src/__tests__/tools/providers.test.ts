@@ -18,7 +18,11 @@ describe("provider tools", () => {
 
   it("registers tools with correct names", () => {
     const names = tools.map((t) => t.name);
-    expect(names).toEqual(["provider_enable", "provider_delete", "provider_info"]);
+    expect(names).toEqual([
+      "provider_enable",
+      "provider_delete",
+      "provider_info",
+    ]);
   });
 
   const endpointMap: Record<string, string> = {

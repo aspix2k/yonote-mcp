@@ -33,8 +33,6 @@ describe("integration tools", () => {
     loop_channels: "loop.channels",
     loop_commands: "loop.commands",
     loop_post: "loop.post",
-    telegram_commands: "telegram.commands",
-    telegram_post: "telegram.post",
   };
 
   for (const [toolName, endpoint] of Object.entries(endpointMap)) {
@@ -52,5 +50,29 @@ describe("integration tools", () => {
       collectionId: "col-1",
       channel: "#general",
     });
+  });
+
+  it("loop_commands passes the Loop team ID", async () => {
+    const handler = getToolHandler(tools, "loop_commands");
+    await handler({ team_id: "team-1" });
+    expect(client.request).toHaveBeenCalledWith("loop.commands", {
+      team_id: "team-1",
+    });
+  });
+
+  it("returns Telegram installation URLs", async () => {
+    await getToolHandler(tools, "telegram_commands")({ group: true });
+    expect(client.getRedirect).toHaveBeenCalledWith(
+      "telegram.commands",
+      { group: true },
+      false,
+    );
+
+    await getToolHandler(tools, "telegram_post")({ collectionId: "col-1" });
+    expect(client.getRedirect).toHaveBeenCalledWith(
+      "telegram.post",
+      { collectionId: "col-1" },
+      false,
+    );
   });
 });

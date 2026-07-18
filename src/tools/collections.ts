@@ -1,13 +1,10 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { ToolRegistrar } from "../tool-registry.js";
 import { z } from "zod";
 import { YonoteClient } from "../api-client.js";
-
-const textResult = (data: unknown) => ({
-  content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-});
+import { textResult } from "../tool-result.js";
 
 export function registerCollectionTools(
-  server: McpServer,
+  server: ToolRegistrar,
   client: YonoteClient,
 ) {
   server.tool(
@@ -106,6 +103,10 @@ export function registerCollectionTools(
     {
       id: z.string().describe("Collection ID"),
       query: z.string().optional().describe("Filter by user name"),
+      permission: z
+        .enum(["read", "read_write", "maintainer"])
+        .optional()
+        .describe("Filter by permission"),
       limit: z.number().optional().describe("Number of results"),
       offset: z.number().optional().describe("Pagination offset"),
       nextPath: z.string().optional().describe("Next page path for pagination"),
@@ -152,14 +153,16 @@ export function registerCollectionTools(
     {
       id: z.string().describe("Collection ID"),
       query: z.string().optional().describe("Filter by group name"),
+      permission: z
+        .enum(["read", "read_write", "maintainer"])
+        .optional()
+        .describe("Filter by permission"),
       limit: z.number().optional().describe("Number of results"),
       offset: z.number().optional().describe("Pagination offset"),
       nextPath: z.string().optional().describe("Next page path for pagination"),
     },
     async (params) =>
-      textResult(
-        await client.request("collections.group_memberships", params),
-      ),
+      textResult(await client.request("collections.group_memberships", params)),
   );
 
   server.tool(

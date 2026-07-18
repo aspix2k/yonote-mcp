@@ -23,7 +23,6 @@ describe("database tools", () => {
 
   const endpointMap: Record<string, string> = {
     database_rows_list: "database.rows.list",
-    database_transaction: "database/transaction",
   };
 
   for (const [toolName, endpoint] of Object.entries(endpointMap)) {
@@ -43,12 +42,15 @@ describe("database tools", () => {
     });
   });
 
-  it("database_transaction passes changes array", async () => {
+  it("database_transaction unwraps changes grouped by database ID", async () => {
     const handler = getToolHandler(tools, "database_transaction");
-    const changes = [{ type: "insert", data: { name: "test" } }];
-    await handler({ changes });
-    expect(client.request).toHaveBeenCalledWith("database/transaction", {
-      changes,
-    });
+    const transactions = {
+      "database-1": [{ path: "rows.row-1.values", op: "update", val: {} }],
+    };
+    await handler({ transactions });
+    expect(client.request).toHaveBeenCalledWith(
+      "database/transaction",
+      transactions,
+    );
   });
 });

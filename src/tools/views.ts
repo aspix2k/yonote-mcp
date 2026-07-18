@@ -1,19 +1,14 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { ToolRegistrar } from "../tool-registry.js";
 import { z } from "zod";
 import { YonoteClient } from "../api-client.js";
+import { textResult } from "../tool-result.js";
 
-const textResult = (data: unknown) => ({
-  content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-});
-
-export function registerViewTools(server: McpServer, client: YonoteClient) {
+export function registerViewTools(server: ToolRegistrar, client: YonoteClient) {
   server.tool(
     "views_list",
     "List view statistics for a document.",
     {
       documentId: z.string().describe("Document ID"),
-      limit: z.number().optional().describe("Number of results"),
-      offset: z.number().optional().describe("Pagination offset"),
     },
     async (params) => textResult(await client.request("views.list", params)),
   );

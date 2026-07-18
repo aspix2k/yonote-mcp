@@ -1,12 +1,12 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { ToolRegistrar } from "../tool-registry.js";
 import { z } from "zod";
 import { YonoteClient } from "../api-client.js";
+import { textResult } from "../tool-result.js";
 
-const textResult = (data: unknown) => ({
-  content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-});
-
-export function registerSyncBlockTools(server: McpServer, client: YonoteClient) {
+export function registerSyncBlockTools(
+  server: ToolRegistrar,
+  client: YonoteClient,
+) {
   server.tool(
     "sync_blocks_create",
     "Create sync blocks.",

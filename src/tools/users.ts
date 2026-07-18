@@ -1,18 +1,18 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { ToolRegistrar } from "../tool-registry.js";
 import { z } from "zod";
 import { YonoteClient } from "../api-client.js";
+import { textResult } from "../tool-result.js";
 
-const textResult = (data: unknown) => ({
-  content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-});
-
-export function registerUserTools(server: McpServer, client: YonoteClient) {
+export function registerUserTools(server: ToolRegistrar, client: YonoteClient) {
   server.tool(
     "users_list",
     "List workspace members.",
     {
       query: z.string().optional().describe("Search by name or email"),
-      filter: z.string().optional().describe("Filter users"),
+      filter: z
+        .enum(["invited", "viewers", "admins", "active", "all", "suspended"])
+        .optional()
+        .describe("Filter users"),
       sort: z.string().optional().describe("Sort field"),
       direction: z.enum(["ASC", "DESC"]).optional().describe("Sort direction"),
       limit: z.number().optional().describe("Number of results"),

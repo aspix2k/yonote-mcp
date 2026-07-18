@@ -1,12 +1,12 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { ToolRegistrar } from "../tool-registry.js";
 import { z } from "zod";
 import { YonoteClient } from "../api-client.js";
+import { textResult } from "../tool-result.js";
 
-const textResult = (data: unknown) => ({
-  content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-});
-
-export function registerShareTools(server: McpServer, client: YonoteClient) {
+export function registerShareTools(
+  server: ToolRegistrar,
+  client: YonoteClient,
+) {
   server.tool(
     "shares_list",
     "List shared documents.",
@@ -22,7 +22,7 @@ export function registerShareTools(server: McpServer, client: YonoteClient) {
 
   server.tool(
     "shares_info",
-    "Get information about a share link.",
+    "Get a share link by id or documentId; provide exactly one.",
     {
       id: z.string().optional().describe("Share ID"),
       documentId: z.string().optional().describe("Document ID"),
@@ -54,7 +54,10 @@ export function registerShareTools(server: McpServer, client: YonoteClient) {
     {
       id: z.string().describe("Share ID"),
       published: z.boolean().optional().describe("Published status"),
-      includeChildDocuments: z.boolean().optional().describe("Include child documents"),
+      includeChildDocuments: z
+        .boolean()
+        .optional()
+        .describe("Include child documents"),
       exposesAt: z.string().optional().describe("Expose at date (ISO 8601)"),
       expiresAt: z.string().optional().describe("Expire at date (ISO 8601)"),
       link: z.string().optional().describe("Custom link slug"),

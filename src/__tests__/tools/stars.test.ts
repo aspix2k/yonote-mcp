@@ -18,11 +18,7 @@ describe("star tools", () => {
 
   it("registers tools with correct names", () => {
     const names = tools.map((t) => t.name);
-    expect(names).toEqual([
-      "stars_list",
-      "stars_create",
-      "stars_delete",
-    ]);
+    expect(names).toEqual(["stars_list", "stars_create", "stars_delete"]);
   });
 
   const endpointMap: Record<string, string> = {

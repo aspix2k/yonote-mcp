@@ -1,0 +1,23 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "testRunner": "vitest",
+  "tsconfigFile": "stryker-unused.json",
+  "tsconfigFile_comment": "Vitest transpiles TypeScript; this avoids Stryker's TypeScript 7 parser incompatibility.",
+  "coverageAnalysis": "perTest",
+  "thresholds": {
+    "high": 90,
+    "low": 85,
+    "break": 85
+  },
+  "mutate": [
+    "src/api-client.ts",
+    "src/config.ts",
+    "src/tool-policy.ts",
+    "src/tool-registry.ts"
+  ],
+  "reporters": ["clear-text", "progress", "html", "json"],
+  "vitest": {
+    "configFile": "vitest.config.ts",
+    "related": true
+  }
+}

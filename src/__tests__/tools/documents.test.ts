@@ -68,7 +68,6 @@ describe("document tools", () => {
     documents_add_user: "documents.add_user",
     documents_remove_user: "documents.remove_user",
     documents_children: "documents.documents",
-    documents_import: "documents.import",
     documents_export: "documents.export",
     documents_starred: "documents.starred",
     documents_pinned: "documents.pinned",
@@ -86,6 +85,19 @@ describe("document tools", () => {
       expect(client.request).toHaveBeenCalledWith(endpoint, {});
     });
   }
+
+  it("documents_import reads a file from the configured import directory", async () => {
+    const handler = getToolHandler(tools, "documents_import");
+    await handler({
+      file: "guide.md",
+      collectionId: "collection-1",
+      publish: false,
+    });
+    expect(client.importDocument).toHaveBeenCalledWith("guide.md", {
+      collectionId: "collection-1",
+      publish: false,
+    });
+  });
 
   it("documents_list passes collectionId and limit", async () => {
     const handler = getToolHandler(tools, "documents_list");
@@ -115,7 +127,12 @@ describe("document tools", () => {
 
   it("documents_create passes title, text, collectionId, publish", async () => {
     const handler = getToolHandler(tools, "documents_create");
-    await handler({ title: "New Doc", text: "# Hello", collectionId: "c1", publish: true });
+    await handler({
+      title: "New Doc",
+      text: "# Hello",
+      collectionId: "c1",
+      publish: true,
+    });
     expect(client.request).toHaveBeenCalledWith("documents.create", {
       title: "New Doc",
       text: "# Hello",
@@ -134,17 +151,22 @@ describe("document tools", () => {
     });
   });
 
-  it("documents_delete passes id", async () => {
+  it("documents_delete passes permanent deletion explicitly", async () => {
     const handler = getToolHandler(tools, "documents_delete");
-    await handler({ id: "doc-1" });
+    await handler({ id: "doc-1", permanent: false });
     expect(client.request).toHaveBeenCalledWith("documents.delete", {
       id: "doc-1",
+      permanent: false,
     });
   });
 
   it("documents_move passes id, collectionId, parentDocumentId", async () => {
     const handler = getToolHandler(tools, "documents_move");
-    await handler({ id: "doc-1", collectionId: "c2", parentDocumentId: "parent-1" });
+    await handler({
+      id: "doc-1",
+      collectionId: "c2",
+      parentDocumentId: "parent-1",
+    });
     expect(client.request).toHaveBeenCalledWith("documents.move", {
       id: "doc-1",
       collectionId: "c2",
@@ -162,12 +184,12 @@ describe("document tools", () => {
     });
   });
 
-  it("documents_copy passes id and collectionId", async () => {
+  it("documents_copy passes the public share and target collection", async () => {
     const handler = getToolHandler(tools, "documents_copy");
-    await handler({ id: "doc-1", collectionId: "c2" });
+    await handler({ shareId: "share-1", targetCollectionId: "c2" });
     expect(client.request).toHaveBeenCalledWith("documents.copy", {
-      id: "doc-1",
-      collectionId: "c2",
+      shareId: "share-1",
+      targetCollectionId: "c2",
     });
   });
 

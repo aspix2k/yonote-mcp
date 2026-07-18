@@ -1,12 +1,12 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { ToolRegistrar } from "../tool-registry.js";
 import { z } from "zod";
 import { YonoteClient } from "../api-client.js";
+import { textResult } from "../tool-result.js";
 
-const textResult = (data: unknown) => ({
-  content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-});
-
-export function registerFileOperationTools(server: McpServer, client: YonoteClient) {
+export function registerFileOperationTools(
+  server: ToolRegistrar,
+  client: YonoteClient,
+) {
   server.tool(
     "file_operations_info",
     "Get information about a file operation.",
@@ -19,19 +19,32 @@ export function registerFileOperationTools(server: McpServer, client: YonoteClie
 
   server.tool(
     "file_operations_redirect",
-    "Get redirect URL for a file operation result.",
+    "Get a temporary signed download URL for a file operation result.",
     {
       id: z.string().describe("File operation ID"),
     },
     async (params) =>
-      textResult(await client.request("fileOperations.redirect", params)),
+      textResult(await client.getRedirect("fileOperations.redirect", params)),
+  );
+
+  server.tool(
+    "file_operations_download",
+    "Download a completed file operation into the configured export directory.",
+    {
+      id: z.string().describe("File operation ID"),
+      filename: z.string().optional().describe("Output filename"),
+    },
+    async ({ filename, ...params }) =>
+      textResult(
+        await client.download("fileOperations.redirect", params, filename),
+      ),
   );
 
   server.tool(
     "file_operations_list",
     "List file operations.",
     {
-      type: z.string().describe("Operation type (e.g. export, import)"),
+      type: z.enum(["export", "import"]).describe("Operation type"),
       sort: z.string().optional().describe("Sort field"),
       direction: z.enum(["ASC", "DESC"]).optional().describe("Sort direction"),
       limit: z.number().optional().describe("Number of results"),

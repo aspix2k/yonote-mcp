@@ -1,18 +1,14 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { ToolRegistrar } from "../tool-registry.js";
 import { z } from "zod";
 import { YonoteClient } from "../api-client.js";
+import { textResult } from "../tool-result.js";
 
-const textResult = (data: unknown) => ({
-  content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-});
-
-export function registerAttachmentTools(server: McpServer, client: YonoteClient) {
-  server.tool(
-    "attachments_list",
-    "List all attachments.",
-    {},
-    async (params) =>
-      textResult(await client.request("attachments.list", params)),
+export function registerAttachmentTools(
+  server: ToolRegistrar,
+  client: YonoteClient,
+) {
+  server.tool("attachments_list", "List all attachments.", {}, async (params) =>
+    textResult(await client.request("attachments.list", params)),
   );
 
   server.tool(
@@ -38,12 +34,25 @@ export function registerAttachmentTools(server: McpServer, client: YonoteClient)
 
   server.tool(
     "attachments_redirect",
-    "Get redirect URL for an attachment.",
+    "Get a temporary signed download URL for an attachment.",
     {
       id: z.string().describe("Attachment ID"),
     },
     async (params) =>
-      textResult(await client.request("attachments.redirect", params)),
+      textResult(await client.getRedirect("attachments.redirect", params)),
+  );
+
+  server.tool(
+    "attachments_download",
+    "Download an attachment into the configured export directory.",
+    {
+      id: z.string().describe("Attachment ID"),
+      filename: z.string().optional().describe("Output filename"),
+    },
+    async ({ filename, ...params }) =>
+      textResult(
+        await client.download("attachments.redirect", params, filename),
+      ),
   );
 
   server.tool(

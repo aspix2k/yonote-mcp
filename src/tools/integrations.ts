@@ -1,66 +1,62 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { ToolRegistrar } from "../tool-registry.js";
 import { z } from "zod";
 import { YonoteClient } from "../api-client.js";
+import { textResult } from "../tool-result.js";
 
-const textResult = (data: unknown) => ({
-  content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-});
-
-export function registerIntegrationTools(server: McpServer, client: YonoteClient) {
-  server.tool(
-    "loop_teams",
-    "List available Loop teams.",
-    {},
-    async (params) =>
-      textResult(await client.request("loop.teams", params)),
+export function registerIntegrationTools(
+  server: ToolRegistrar,
+  client: YonoteClient,
+) {
+  server.tool("loop_teams", "List available Loop teams.", {}, async (params) =>
+    textResult(await client.request("loop.teams", params)),
   );
 
   server.tool(
     "loop_channels",
-    "List channels for a Loop team.",
-    {
-      teamId: z.string().describe("Team ID"),
-    },
-    async (params) =>
-      textResult(await client.request("loop.channels", params)),
+    "List channels available in the connected Loop namespace.",
+    {},
+    async (params) => textResult(await client.request("loop.channels", params)),
   );
 
   server.tool(
     "loop_commands",
-    "List available Loop commands.",
-    {},
-    async (params) =>
-      textResult(await client.request("loop.commands", params)),
+    "Install the slash-command integration for a Loop team.",
+    {
+      team_id: z.string().describe("Loop team ID"),
+    },
+    async (params) => textResult(await client.request("loop.commands", params)),
   );
 
   server.tool(
     "loop_post",
-    "Post a collection update to Loop.",
+    "Install collection-post integration for a Loop channel.",
     {
       collectionId: z.string().describe("Collection ID"),
       channel: z.string().describe("Channel to post to"),
     },
-    async (params) =>
-      textResult(await client.request("loop.post", params)),
+    async (params) => textResult(await client.request("loop.post", params)),
   );
 
   server.tool(
     "telegram_commands",
-    "List available Telegram commands.",
+    "Get the Telegram URL that installs the commands integration.",
     {
-      group: z.string().optional().describe("Telegram group"),
+      group: z
+        .boolean()
+        .optional()
+        .describe("Install into a group chat instead of a private chat"),
     },
     async (params) =>
-      textResult(await client.request("telegram.commands", params)),
+      textResult(await client.getRedirect("telegram.commands", params, false)),
   );
 
   server.tool(
     "telegram_post",
-    "Post a collection update to Telegram.",
+    "Get the Telegram URL that installs collection-post integration.",
     {
       collectionId: z.string().describe("Collection ID"),
     },
     async (params) =>
-      textResult(await client.request("telegram.post", params)),
+      textResult(await client.getRedirect("telegram.post", params, false)),
   );
 }

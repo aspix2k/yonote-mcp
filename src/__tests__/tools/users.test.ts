@@ -62,7 +62,11 @@ describe("user tools", () => {
 
   it("users_create passes email, name, role", async () => {
     const handler = getToolHandler(tools, "users_create");
-    await handler({ email: "test@test.com", name: "Test User", role: "member" });
+    await handler({
+      email: "test@test.com",
+      name: "Test User",
+      role: "member",
+    });
     expect(client.request).toHaveBeenCalledWith("users.create", {
       email: "test@test.com",
       name: "Test User",
@@ -72,7 +76,10 @@ describe("user tools", () => {
 
   it("users_update passes name and avatarUrl", async () => {
     const handler = getToolHandler(tools, "users_update");
-    await handler({ name: "New Name", avatarUrl: "https://example.com/avatar.png" });
+    await handler({
+      name: "New Name",
+      avatarUrl: "https://example.com/avatar.png",
+    });
     expect(client.request).toHaveBeenCalledWith("users.update", {
       name: "New Name",
       avatarUrl: "https://example.com/avatar.png",

@@ -1,146 +1,258 @@
+#!/usr/bin/env node
+
+import { timingSafeEqual } from "node:crypto";
+import type { Server } from "node:http";
 import { fileURLToPath } from "node:url";
-import { createServer, type Server } from "node:http";
+import type { NextFunction, Request, Response } from "express";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { createMcpExpressApp } from "@modelcontextprotocol/sdk/server/express.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { YonoteClient } from "./api-client.js";
-import { registerDocumentTools } from "./tools/documents.js";
-import { registerCollectionTools } from "./tools/collections.js";
-import { registerUserTools } from "./tools/users.js";
-import { registerCommentTools } from "./tools/comments.js";
-import { registerGroupTools } from "./tools/groups.js";
-import { registerShareTools } from "./tools/shares.js";
-import { registerStarTools } from "./tools/stars.js";
-import { registerRevisionTools } from "./tools/revisions.js";
-import { registerEventTools } from "./tools/events.js";
-import { registerViewTools } from "./tools/views.js";
-import { registerAuthTools } from "./tools/auth.js";
-import { registerDatabaseTools } from "./tools/database.js";
+import { parseArgs, type RuntimeConfig } from "./config.js";
+import { YonoteToolRegistry } from "./tool-registry.js";
 import { registerAttachmentTools } from "./tools/attachments.js";
+import { registerAuthTools } from "./tools/auth.js";
+import { registerCollectionTools } from "./tools/collections.js";
+import { registerCommentTools } from "./tools/comments.js";
+import { registerDatabaseTools } from "./tools/database.js";
+import { registerDocumentTools } from "./tools/documents.js";
+import { registerEventTools } from "./tools/events.js";
 import { registerFileOperationTools } from "./tools/file-operations.js";
-import { registerSubscriptionTools } from "./tools/subscriptions.js";
-import { registerSyncBlockTools } from "./tools/sync-blocks.js";
+import { registerGroupTools } from "./tools/groups.js";
 import { registerIntegrationTools } from "./tools/integrations.js";
 import { registerLdapTools } from "./tools/ldap.js";
 import { registerProviderTools } from "./tools/providers.js";
+import { registerRevisionTools } from "./tools/revisions.js";
 import { registerSharePasswordTools } from "./tools/share-passwords.js";
+import { registerShareTools } from "./tools/shares.js";
+import { registerStarTools } from "./tools/stars.js";
+import { registerSubscriptionTools } from "./tools/subscriptions.js";
+import { registerSyncBlockTools } from "./tools/sync-blocks.js";
+import { registerUserTools } from "./tools/users.js";
+import { registerViewTools } from "./tools/views.js";
 
-export function parseArgs(argv: string[] = process.argv.slice(2)) {
-  let token: string | undefined;
-  let project: string | undefined;
-  let baseUrl: string | undefined;
+export const SERVER_VERSION = "1.0.0";
+export { parseArgs } from "./config.js";
 
-  for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === "--token" && argv[i + 1]) {
-      token = argv[++i];
-    } else if (argv[i] === "--project" && argv[i + 1]) {
-      project = argv[++i];
-    } else if (argv[i] === "--base-url" && argv[i + 1]) {
-      baseUrl = argv[++i];
-    }
-  }
-
-  const resolvedBaseUrl =
-    baseUrl || process.env.YONOTE_API_BASE_URL ||
-    `https://${project || process.env.YONOTE_PROJECT || "app"}.yonote.ru/api`;
-
-  return {
-    token: token || process.env.YONOTE_API_TOKEN,
-    baseUrl: resolvedBaseUrl,
-  };
-}
-
-export function createMcpServer(token: string, baseUrl: string): McpServer {
+export function createMcpServer(config: RuntimeConfig): McpServer {
   const server = new McpServer({
     name: "yonote-mcp",
-    version: "1.0.0",
+    version: SERVER_VERSION,
+    websiteUrl: "https://github.com/aspix2k/yonote-mcp",
+  });
+  const client = new YonoteClient({
+    token: config.token,
+    baseUrl: config.baseUrl,
+    timeoutMs: config.timeoutMs,
+    maxRetries: config.maxRetries,
+    exportDir: config.exportDir,
+    maxDownloadBytes: config.maxDownloadBytes,
+    importDir: config.importDir,
+    maxImportBytes: config.maxImportBytes,
+    allowInsecureHttp: config.allowInsecureHttp,
+    userAgent: `yonote-mcp/${SERVER_VERSION}`,
+  });
+  const registry = new YonoteToolRegistry(server, {
+    profile: config.profile,
+    apiChannel: config.apiChannel,
+    enabledTools: config.enabledTools,
+    disabledTools: config.disabledTools,
   });
 
-  const client = new YonoteClient(token, baseUrl);
-
-  registerDocumentTools(server, client);
-  registerCollectionTools(server, client);
-  registerUserTools(server, client);
-  registerCommentTools(server, client);
-  registerGroupTools(server, client);
-  registerShareTools(server, client);
-  registerStarTools(server, client);
-  registerRevisionTools(server, client);
-  registerEventTools(server, client);
-  registerViewTools(server, client);
-  registerAuthTools(server, client);
-  registerDatabaseTools(server, client);
-  registerAttachmentTools(server, client);
-  registerFileOperationTools(server, client);
-  registerSubscriptionTools(server, client);
-  registerSyncBlockTools(server, client);
-  registerIntegrationTools(server, client);
-  registerLdapTools(server, client);
-  registerProviderTools(server, client);
-  registerSharePasswordTools(server, client);
+  registerDocumentTools(registry, client);
+  registerCollectionTools(registry, client);
+  registerUserTools(registry, client);
+  registerCommentTools(registry, client);
+  registerGroupTools(registry, client);
+  registerShareTools(registry, client);
+  registerStarTools(registry, client);
+  registerRevisionTools(registry, client);
+  registerEventTools(registry, client);
+  registerViewTools(registry, client);
+  registerAuthTools(registry, client);
+  registerDatabaseTools(registry, client);
+  registerAttachmentTools(registry, client);
+  registerFileOperationTools(registry, client);
+  registerSubscriptionTools(registry, client);
+  registerSyncBlockTools(registry, client);
+  registerIntegrationTools(registry, client);
+  registerLdapTools(registry, client);
+  registerProviderTools(registry, client);
+  registerSharePasswordTools(registry, client);
 
   return server;
 }
 
-export async function main(): Promise<Server | void> {
-  const config = parseArgs();
+export async function startHttpServer(config: RuntimeConfig): Promise<Server> {
+  const app = createMcpExpressApp({
+    host: config.host,
+    allowedHosts: config.allowedHosts.length
+      ? [...config.allowedHosts]
+      : undefined,
+  });
+  app.use("/mcp", originGuard(config.allowedOrigins));
+  app.use("/mcp", bearerGuard(config.httpBearerToken));
 
-  if (!config.token) {
-    console.error("YONOTE_API_TOKEN is required. Pass via --token argument or YONOTE_API_TOKEN env variable.");
-    process.exit(1);
-  }
+  app.get("/health", (_request, response) => {
+    response.json({
+      status: "ok",
+      version: SERVER_VERSION,
+      profile: config.profile,
+      apiChannel: config.apiChannel,
+    });
+  });
 
-  const token: string = config.token;
-  const baseUrl: string = config.baseUrl;
-  const transportType = process.env.TRANSPORT || "stdio";
+  app.post("/mcp", async (request, response) => {
+    const server = createMcpServer(config);
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+    });
+    response.on("close", () => {
+      void transport.close();
+      void server.close();
+    });
 
-  if (transportType === "http") {
-    const port = parseInt(process.env.PORT || "3000");
-
-    const httpServer = createServer(async (req, res) => {
-      const url = new URL(req.url || "/", `http://localhost:${port}`);
-
-      if (url.pathname === "/mcp") {
-        const transport = new StreamableHTTPServerTransport({
-          sessionIdGenerator: undefined,
+    try {
+      await server.connect(transport);
+      await transport.handleRequest(request, response, request.body);
+    } catch {
+      if (!response.headersSent) {
+        response.status(500).json({
+          jsonrpc: "2.0",
+          error: { code: -32603, message: "Internal server error" },
+          id: null,
         });
-        const server = createMcpServer(token, baseUrl);
-        await server.connect(transport);
-        await transport.handleRequest(req, res);
-        res.on("close", () => {
-          transport.close();
-          server.close();
-        });
-      } else if (url.pathname === "/health") {
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ status: "ok" }));
-      } else {
-        res.writeHead(404);
-        res.end("Not Found");
       }
-    });
+    }
+  });
 
-    return new Promise((resolve) => {
-      httpServer.listen(port, () => {
-        console.error(
-          `Yonote MCP server (HTTP) listening on http://0.0.0.0:${port}/mcp`,
-        );
-        resolve(httpServer);
-      });
-    });
-  } else {
-    const server = createMcpServer(token, baseUrl);
-    const transport = new StdioServerTransport();
-    await server.connect(transport);
-  }
-}
+  app.get("/mcp", methodNotAllowed);
+  app.delete("/mcp", methodNotAllowed);
 
-/* v8 ignore start */
-const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
-if (isMainModule) {
-  main().catch((error) => {
-    console.error("Failed to start Yonote MCP server:", error);
-    process.exit(1);
+  return new Promise((resolve, reject) => {
+    const httpServer = app.listen(config.port, config.host, () => {
+      resolve(httpServer);
+    });
+    httpServer.once("error", reject);
   });
 }
-/* v8 ignore stop */
+
+export async function main(
+  argv: readonly string[] = process.argv.slice(2),
+  env: NodeJS.ProcessEnv = process.env,
+): Promise<Server | void> {
+  if (argv.includes("--help")) {
+    process.stdout.write(helpText());
+    return;
+  }
+  if (argv.includes("--version")) {
+    process.stdout.write(`${SERVER_VERSION}\n`);
+    return;
+  }
+
+  const config = parseArgs(argv, env);
+  for (const warning of config.warnings) {
+    console.error(`Warning: ${warning}`);
+  }
+
+  if (config.transport === "http") {
+    const httpServer = await startHttpServer(config);
+    const address = httpServer.address();
+    const port =
+      typeof address === "object" && address ? address.port : config.port;
+    console.error(
+      `Yonote MCP listening on http://${config.host}:${port}/mcp with ${config.profile} profile and ${config.apiChannel} API channel`,
+    );
+    return httpServer;
+  }
+
+  const server = createMcpServer(config);
+  await server.connect(new StdioServerTransport());
+}
+
+function originGuard(allowedOrigins: readonly string[]) {
+  const allowed = new Set(allowedOrigins);
+  return (request: Request, response: Response, next: NextFunction): void => {
+    const origin = request.header("origin");
+    if (origin && !allowed.has(origin)) {
+      response.status(403).json({ error: "origin_not_allowed" });
+      return;
+    }
+    next();
+  };
+}
+
+function bearerGuard(expectedToken: string | undefined) {
+  return (request: Request, response: Response, next: NextFunction): void => {
+    if (!expectedToken) {
+      next();
+      return;
+    }
+    const authorization = request.header("authorization") ?? "";
+    const prefix = "Bearer ";
+    const received = authorization.startsWith(prefix)
+      ? authorization.slice(prefix.length)
+      : "";
+    if (!secureEqual(received, expectedToken)) {
+      response.setHeader("WWW-Authenticate", "Bearer");
+      response.status(401).json({ error: "unauthorized" });
+      return;
+    }
+    next();
+  };
+}
+
+function secureEqual(left: string, right: string): boolean {
+  const leftBuffer = Buffer.from(left);
+  const rightBuffer = Buffer.from(right);
+  return (
+    leftBuffer.length === rightBuffer.length &&
+    timingSafeEqual(leftBuffer, rightBuffer)
+  );
+}
+
+function methodNotAllowed(_request: Request, response: Response): void {
+  response.status(405).json({
+    jsonrpc: "2.0",
+    error: { code: -32000, message: "Method not allowed" },
+    id: null,
+  });
+}
+
+function helpText(): string {
+  return (
+    `yonote-mcp ${SERVER_VERSION}\n\n` +
+    `Options:\n` +
+    `  --token-file <path>\n` +
+    `  --project <name>\n` +
+    `  --base-url <url>\n` +
+    `  --transport <stdio|http>\n` +
+    `  --host <host>\n` +
+    `  --port <port>\n` +
+    `  --profile <readonly|export|editor|admin>\n` +
+    `  --api-channel <stable|preview|legacy>\n` +
+    `  --enable-tools <comma-separated names>\n` +
+    `  --disable-tools <comma-separated names>\n` +
+    `  --timeout-ms <milliseconds>\n` +
+    `  --max-retries <count>\n` +
+    `  --export-dir <path>\n` +
+    `  --max-download-bytes <bytes>\n` +
+    `  --import-dir <path>\n` +
+    `  --max-import-bytes <bytes>\n` +
+    `  --allowed-hosts <comma-separated hosts>\n` +
+    `  --allowed-origins <comma-separated origins>\n` +
+    `  --allow-insecure-http\n` +
+    `  --help\n` +
+    `  --version\n`
+  );
+}
+
+const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
+if (isMainModule) {
+  main().catch((error: unknown) => {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error(`Failed to start Yonote MCP server: ${message}`);
+    process.exitCode = 1;
+  });
+}

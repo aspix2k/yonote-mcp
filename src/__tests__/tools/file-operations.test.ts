@@ -12,8 +12,8 @@ describe("file operation tools", () => {
     tools = collectTools(registerFileOperationTools, client);
   });
 
-  it("registers 3 tools", () => {
-    expect(tools).toHaveLength(3);
+  it("registers 4 tools", () => {
+    expect(tools).toHaveLength(4);
   });
 
   it("registers tools with correct names", () => {
@@ -21,13 +21,13 @@ describe("file operation tools", () => {
     expect(names).toEqual([
       "file_operations_info",
       "file_operations_redirect",
+      "file_operations_download",
       "file_operations_list",
     ]);
   });
 
   const endpointMap: Record<string, string> = {
     file_operations_info: "fileOperations.info",
-    file_operations_redirect: "fileOperations.redirect",
     file_operations_list: "fileOperations.list",
   };
 
@@ -38,6 +38,24 @@ describe("file operation tools", () => {
       expect(client.request).toHaveBeenCalledWith(endpoint, {});
     });
   }
+
+  it("file_operations_redirect requests a signed URL", async () => {
+    const handler = getToolHandler(tools, "file_operations_redirect");
+    await handler({ id: "operation-1" });
+    expect(client.getRedirect).toHaveBeenCalledWith("fileOperations.redirect", {
+      id: "operation-1",
+    });
+  });
+
+  it("file_operations_download saves into the configured export directory", async () => {
+    const handler = getToolHandler(tools, "file_operations_download");
+    await handler({ id: "operation-1", filename: "export.zip" });
+    expect(client.download).toHaveBeenCalledWith(
+      "fileOperations.redirect",
+      { id: "operation-1" },
+      "export.zip",
+    );
+  });
 
   it("file_operations_list passes type", async () => {
     const handler = getToolHandler(tools, "file_operations_list");

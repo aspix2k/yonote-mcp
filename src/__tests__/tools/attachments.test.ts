@@ -12,8 +12,8 @@ describe("attachment tools", () => {
     tools = collectTools(registerAttachmentTools, client);
   });
 
-  it("registers 5 tools", () => {
-    expect(tools).toHaveLength(5);
+  it("registers 6 tools", () => {
+    expect(tools).toHaveLength(6);
   });
 
   it("registers tools with correct names", () => {
@@ -23,6 +23,7 @@ describe("attachment tools", () => {
       "attachments_size",
       "attachments_create",
       "attachments_redirect",
+      "attachments_download",
       "attachments_delete",
     ]);
   });
@@ -31,7 +32,6 @@ describe("attachment tools", () => {
     attachments_list: "attachments.list",
     attachments_size: "attachments.size",
     attachments_create: "attachments.create",
-    attachments_redirect: "attachments.redirect",
     attachments_delete: "attachments.delete",
   };
 
@@ -43,9 +43,31 @@ describe("attachment tools", () => {
     });
   }
 
+  it("attachments_redirect requests a signed URL", async () => {
+    const handler = getToolHandler(tools, "attachments_redirect");
+    await handler({ id: "attachment-1" });
+    expect(client.getRedirect).toHaveBeenCalledWith("attachments.redirect", {
+      id: "attachment-1",
+    });
+  });
+
+  it("attachments_download saves into the configured export directory", async () => {
+    const handler = getToolHandler(tools, "attachments_download");
+    await handler({ id: "attachment-1", filename: "guide.pdf" });
+    expect(client.download).toHaveBeenCalledWith(
+      "attachments.redirect",
+      { id: "attachment-1" },
+      "guide.pdf",
+    );
+  });
+
   it("attachments_create passes name, contentType, size", async () => {
     const handler = getToolHandler(tools, "attachments_create");
-    await handler({ name: "file.pdf", contentType: "application/pdf", size: 1024 });
+    await handler({
+      name: "file.pdf",
+      contentType: "application/pdf",
+      size: 1024,
+    });
     expect(client.request).toHaveBeenCalledWith("attachments.create", {
       name: "file.pdf",
       contentType: "application/pdf",
