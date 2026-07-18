@@ -8,6 +8,7 @@ test:
     - npm ci --ignore-scripts
     - npm run check
     - npm run build
+    - npm run package:check
     - npm audit --omit=dev
     - npm pack --dry-run
   coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'

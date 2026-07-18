@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { timingSafeEqual } from "node:crypto";
+import { realpathSync } from "node:fs";
 import type { Server } from "node:http";
 import { fileURLToPath } from "node:url";
 import type { NextFunction, Request, Response } from "express";
@@ -248,7 +249,10 @@ function helpText(): string {
   );
 }
 
-const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
+const entryPoint = process.argv[1];
+const isMainModule =
+  entryPoint !== undefined &&
+  realpathSync(entryPoint) === fileURLToPath(import.meta.url);
 if (isMainModule) {
   main().catch((error: unknown) => {
     const message = error instanceof Error ? error.message : "Unknown error";
