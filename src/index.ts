@@ -33,7 +33,7 @@ import { registerSyncBlockTools } from "./tools/sync-blocks.js";
 import { registerUserTools } from "./tools/users.js";
 import { registerViewTools } from "./tools/views.js";
 
-export const SERVER_VERSION = "1.0.0";
+export const SERVER_VERSION = "1.0.1";
 export { parseArgs } from "./config.js";
 
 export function createMcpServer(config: RuntimeConfig): McpServer {

@@ -40,7 +40,7 @@ Add this to `~/.codex/config.toml`:
 command = "npx"
 args = [
   "-y",
-  "github:aspix2k/yonote-mcp#v1.0.0",
+  "yonote-mcp@1.0.1",
   "--token-file",
   "/absolute/path/to/token",
   "--project",
@@ -52,7 +52,7 @@ args = [
 
 ```bash
 claude mcp add yonote --scope user -- \
-  npx -y "github:aspix2k/yonote-mcp#v1.0.0" \
+  npx -y "yonote-mcp@1.0.1" \
   --token-file /absolute/path/to/token \
   --project your-project
 ```
@@ -66,7 +66,7 @@ claude mcp add yonote --scope user -- \
       "command": "npx",
       "args": [
         "-y",
-        "github:aspix2k/yonote-mcp#v1.0.0",
+        "yonote-mcp@1.0.1",
         "--token-file",
         "/absolute/path/to/token",
         "--project",

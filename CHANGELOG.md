@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.1 - 2026-07-19
+
+- Fixes CLI startup through npm bin links.
+- Adds an installed-package smoke test to CI.
+- Supports maintained Node.js releases: 22, 24, and 26.
+- Updates GitHub Actions to their current Node 24-based releases.
+
 ## 1.0.0 - 2026-07-19
 
 - Covers all published Yonote operations, including the API v2 share-password
