@@ -34,10 +34,16 @@ describe("revision tools", () => {
     });
   }
 
-  it("revisions_list passes sort and direction", async () => {
+  it("revisions_list passes documentId, sort, and direction", async () => {
     const handler = getToolHandler(tools, "revisions_list");
-    await handler({ sort: "createdAt", direction: "DESC", limit: 10 });
+    await handler({
+      documentId: "doc-1",
+      sort: "createdAt",
+      direction: "DESC",
+      limit: 10,
+    });
     expect(client.request).toHaveBeenCalledWith("revisions.list", {
+      documentId: "doc-1",
       sort: "createdAt",
       direction: "DESC",
       limit: 10,

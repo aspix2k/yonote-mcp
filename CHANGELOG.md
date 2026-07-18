@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.2 - 2026-07-19
+
+- Adds a paginated collection hierarchy tool backed by the current
+  `documents.list` API.
+- Requires the live `documentId` parameter for revision history.
+- Adds Codecov reporting and extends mutation testing to collection hierarchy
+  logic.
+
 ## 1.0.1 - 2026-07-19
 
 - Fixes CLI startup through npm bin links.

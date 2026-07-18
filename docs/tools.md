@@ -8,10 +8,10 @@ annotations.
 
 | Profile    | Stable tools | Capabilities                                                      |
 | ---------- | -----------: | ----------------------------------------------------------------- |
-| `readonly` |           39 | Read and search Yonote data                                       |
-| `export`   |           46 | Read plus export and local download                               |
-| `editor`   |           75 | Export plus content changes                                       |
-| `admin`    |          102 | All capabilities, including membership and destructive operations |
+| `readonly` |           40 | Read and search Yonote data                                       |
+| `export`   |           47 | Read plus export and local download                               |
+| `editor`   |           76 | Export plus content changes                                       |
+| `admin`    |          103 | All capabilities, including membership and destructive operations |
 
 Profiles are cumulative. Destructive tools are only present in `editor` or
 `admin`, depending on their scope.
@@ -20,12 +20,17 @@ Profiles are cumulative. Destructive tools are only present in `editor` or
 
 | Channel   | Tools | Purpose                                                                      |
 | --------- | ----: | ---------------------------------------------------------------------------- |
-| `stable`  |   102 | All 100 published API v1 operations plus two local download helpers; default |
-| `preview` |   107 | Stable plus five documented API v2 preview tools                             |
-| `legacy`  |   116 | Preview plus nine undocumented compatibility tools from the upstream server  |
+| `stable`  |   103 | All 100 published API v1 operations plus three local helpers; default        |
+| `preview` |   108 | Stable plus five documented API v2 preview tools                             |
+| `legacy`  |   116 | Preview plus eight undocumented compatibility tools from the upstream server |
 
 Legacy tools are retained for existing installations but are not claimed to be
 part of Yonote's public API contract.
+
+API availability can also depend on the Yonote deployment, enabled
+integrations, and plan. When an operation is unavailable, the server returns
+Yonote's error unchanged. Use `--enable-tools` to keep the catalog focused on
+the operations available in your workspace.
 
 ## Groups
 

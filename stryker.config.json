@@ -11,6 +11,7 @@
   },
   "mutate": [
     "src/api-client.ts",
+    "src/collection-documents.ts",
     "src/config.ts",
     "src/tool-policy.ts",
     "src/tool-registry.ts"

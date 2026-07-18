@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { createMockClient, collectTools, getToolHandler } from "../helpers.js";
 import { registerCollectionTools } from "../../tools/collections.js";
 import type { YonoteClient } from "../../api-client.js";
@@ -42,7 +42,6 @@ describe("collection tools", () => {
     collections_create: "collections.create",
     collections_update: "collections.update",
     collections_delete: "collections.delete",
-    collections_documents: "collections.documents",
     collections_add_user: "collections.add_user",
     collections_remove_user: "collections.remove_user",
     collections_memberships: "collections.memberships",
@@ -60,6 +59,212 @@ describe("collection tools", () => {
       expect(client.request).toHaveBeenCalledWith(endpoint, {});
     });
   }
+
+  it("collections_documents builds a paginated hierarchy", async () => {
+    vi.mocked(client.request)
+      .mockResolvedValueOnce({
+        total: "3",
+        data: [
+          { id: "child", title: "Child", parentDocumentId: "root" },
+          { id: "root", title: "Root" },
+        ],
+      })
+      .mockResolvedValueOnce({
+        total: 3,
+        data: [{ id: "orphan", title: "Orphan", parentDocumentId: "missing" }],
+      });
+
+    const handler = getToolHandler(tools, "collections_documents");
+    const result = await handler({ id: "col-1", limit: 10 });
+
+    expect(client.request).toHaveBeenNthCalledWith(1, "documents.list", {
+      collectionId: "col-1",
+      limit: 10,
+      offset: 0,
+    });
+    expect(client.request).toHaveBeenNthCalledWith(2, "documents.list", {
+      collectionId: "col-1",
+      limit: 8,
+      offset: 2,
+    });
+    expect(result).toEqual({
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(
+            {
+              collectionId: "col-1",
+              total: 3,
+              returned: 3,
+              truncated: false,
+              data: [
+                {
+                  id: "root",
+                  title: "Root",
+                  children: [
+                    {
+                      id: "child",
+                      title: "Child",
+                      parentDocumentId: "root",
+                      children: [],
+                    },
+                  ],
+                },
+                {
+                  id: "orphan",
+                  title: "Orphan",
+                  parentDocumentId: "missing",
+                  children: [],
+                },
+              ],
+            },
+            null,
+            2,
+          ),
+        },
+      ],
+    });
+  });
+
+  it("collections_documents bounds cyclic data and reports truncation", async () => {
+    vi.mocked(client.request).mockResolvedValueOnce({
+      total: 3,
+      data: [
+        { id: "first", title: "First", parentDocumentId: "second" },
+        { id: "second", title: "Second", parentDocumentId: "first" },
+      ],
+    });
+
+    const handler = getToolHandler(tools, "collections_documents");
+    const result = await handler({ id: "col-1", limit: 2 });
+
+    expect(result).toEqual({
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(
+            {
+              collectionId: "col-1",
+              total: 3,
+              returned: 2,
+              truncated: true,
+              data: [
+                {
+                  id: "first",
+                  title: "First",
+                  parentDocumentId: "second",
+                  children: [
+                    {
+                      id: "second",
+                      title: "Second",
+                      parentDocumentId: "first",
+                      children: [],
+                    },
+                  ],
+                },
+              ],
+            },
+            null,
+            2,
+          ),
+        },
+      ],
+    });
+  });
+
+  it("collections_documents stops at the last uncounted page", async () => {
+    vi.mocked(client.request).mockResolvedValueOnce({
+      total: "unknown",
+      data: [{ id: "only" }],
+    });
+
+    const handler = getToolHandler(tools, "collections_documents");
+    const result = await handler({ id: "col-1", limit: 10 });
+
+    expect(client.request).toHaveBeenCalledOnce();
+    expect(result).toEqual({
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(
+            {
+              collectionId: "col-1",
+              total: 1,
+              returned: 1,
+              truncated: false,
+              data: [{ id: "only", title: "", children: [] }],
+            },
+            null,
+            2,
+          ),
+        },
+      ],
+    });
+  });
+
+  it("collections_documents paginates uncounted full pages", async () => {
+    const firstPage = Array.from({ length: 100 }, (_, index) => ({
+      id: `doc-${index}`,
+      title: `Document ${index}`,
+    }));
+    vi.mocked(client.request)
+      .mockResolvedValueOnce({ data: firstPage })
+      .mockResolvedValueOnce({
+        data: [{ id: "doc-100", title: "Document 100" }],
+      });
+
+    const handler = getToolHandler(tools, "collections_documents");
+    const result = await handler({ id: "col-1", limit: 101 });
+    const content = result.content[0];
+    expect(content.type).toBe("text");
+    if (content.type !== "text") throw new Error("Expected a text result");
+    const payload = JSON.parse(content.text);
+
+    expect(client.request).toHaveBeenNthCalledWith(1, "documents.list", {
+      collectionId: "col-1",
+      limit: 100,
+      offset: 0,
+    });
+    expect(client.request).toHaveBeenNthCalledWith(2, "documents.list", {
+      collectionId: "col-1",
+      limit: 1,
+      offset: 100,
+    });
+    expect(client.request).toHaveBeenCalledTimes(2);
+    expect(payload).toMatchObject({
+      total: 101,
+      returned: 101,
+      truncated: false,
+    });
+    expect(payload.data).toHaveLength(101);
+  });
+
+  it("collections_documents stops on an empty counted page", async () => {
+    vi.mocked(client.request).mockResolvedValueOnce({ total: 1, data: [] });
+
+    const handler = getToolHandler(tools, "collections_documents");
+    const result = await handler({ id: "col-1", limit: 10 });
+
+    expect(client.request).toHaveBeenCalledOnce();
+    expect(result).toEqual({
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(
+            {
+              collectionId: "col-1",
+              total: 1,
+              returned: 0,
+              truncated: true,
+              data: [],
+            },
+            null,
+            2,
+          ),
+        },
+      ],
+    });
+  });
 
   it("collections_create passes name, description, private", async () => {
     const handler = getToolHandler(tools, "collections_create");

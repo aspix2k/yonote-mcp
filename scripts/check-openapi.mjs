@@ -5,6 +5,11 @@ import { createMcpServer } from "../dist/index.js";
 import { TOOL_POLICIES } from "../dist/tool-policy.js";
 
 const OPENAPI_URL = "https://yonote.ru/openapi-3.json";
+const LOCAL_TOOLS = new Set([
+  "attachments_download",
+  "collections_documents",
+  "file_operations_download",
+]);
 const toolsDirectory = new URL("../src/tools/", import.meta.url);
 const toolOperations = await readToolOperations();
 
@@ -33,13 +38,13 @@ if (missingOperations.length) {
 const tools = await listTools();
 const schemaErrors = [];
 for (const tool of tools) {
+  if (LOCAL_TOOLS.has(tool.name)) continue;
   const operation = toolOperations.get(tool.name);
   if (!operation) {
     schemaErrors.push(`${tool.name}: no Yonote operation mapping`);
     continue;
   }
 
-  if (tool.name.endsWith("_download")) continue;
   const documented = documentedOperations.get(
     `${operation.method} ${operation.path}`,
   );
@@ -302,6 +307,10 @@ function applyLocalAdapters(toolName, properties, required, specification) {
   }
   if (toolName === "groups_memberships") {
     properties.id = { type: "string" };
+  }
+  if (toolName === "revisions_list") {
+    properties.documentId = { type: "string" };
+    required.add("documentId");
   }
 
   for (const name of [...required]) {

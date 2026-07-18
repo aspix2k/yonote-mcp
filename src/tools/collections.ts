@@ -1,6 +1,10 @@
 import type { ToolRegistrar } from "../tool-registry.js";
 import { z } from "zod";
 import { YonoteClient } from "../api-client.js";
+import {
+  COLLECTION_DOCUMENT_LIMIT,
+  getCollectionDocuments,
+} from "../collection-documents.js";
 import { textResult } from "../tool-result.js";
 
 export function registerCollectionTools(
@@ -67,12 +71,19 @@ export function registerCollectionTools(
 
   server.tool(
     "collections_documents",
-    "Get the document hierarchy tree of a collection.",
+    "Get a compact document hierarchy for a collection.",
     {
       id: z.string().describe("Collection ID"),
+      limit: z
+        .number()
+        .int()
+        .min(1)
+        .max(COLLECTION_DOCUMENT_LIMIT)
+        .optional()
+        .describe("Maximum documents to return (default 1000)"),
     },
-    async (params) =>
-      textResult(await client.request("collections.documents", params)),
+    async ({ id, limit = COLLECTION_DOCUMENT_LIMIT }) =>
+      textResult(await getCollectionDocuments(client, id, limit)),
   );
 
   server.tool(

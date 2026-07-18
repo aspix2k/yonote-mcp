@@ -27,14 +27,14 @@ describe("tool policies", () => {
       Object.values(TOOL_POLICIES).filter((it) => it.idempotent),
     ).toHaveLength(82);
     expect(Object.fromEntries(combinations)).toEqual({
-      "read|false|true|stable": 39,
+      "read|false|true|stable": 40,
       "admin|false|true|stable": 7,
       "admin|true|true|stable": 8,
       "write|false|false|stable": 10,
       "export|false|false|stable": 7,
       "write|true|true|stable": 5,
       "write|false|true|stable": 14,
-      "read|false|true|legacy": 4,
+      "read|false|true|legacy": 3,
       "admin|false|false|legacy": 2,
       "admin|true|true|legacy": 1,
       "admin|false|false|stable": 12,
@@ -49,6 +49,7 @@ describe("tool policies", () => {
   it("keeps representative high-risk tools in the intended policy", () => {
     expect(TOOL_POLICIES).toMatchObject({
       documents_info: policy("read", false, true, "stable"),
+      collections_documents: policy("read", false, true, "stable"),
       attachments_redirect: policy("export", false, false, "stable"),
       documents_create: policy("write", false, false, "stable"),
       documents_update: policy("write", false, true, "stable"),
@@ -69,11 +70,11 @@ describe("tool policies", () => {
   });
 
   it.each([
-    ["readonly", "stable", 39],
-    ["export", "stable", 46],
-    ["editor", "stable", 75],
-    ["admin", "stable", 102],
-    ["admin", "preview", 107],
+    ["readonly", "stable", 40],
+    ["export", "stable", 47],
+    ["editor", "stable", 76],
+    ["admin", "stable", 103],
+    ["admin", "preview", 108],
     ["admin", "legacy", 116],
   ] satisfies [ToolProfile, ToolApiChannel, number][])(
     "exposes the reviewed %s/%s inventory",

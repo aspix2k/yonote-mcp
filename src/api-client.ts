@@ -71,7 +71,6 @@ const IDEMPOTENT_ENDPOINTS = new Set([
   "auth.config",
   "collections.list",
   "collections.info",
-  "collections.documents",
   "collections.memberships",
   "collections.group_memberships",
   "comments.list",

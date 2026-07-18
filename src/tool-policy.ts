@@ -128,7 +128,7 @@ export const TOOL_POLICIES = {
   collections_create: write,
   collections_update: idempotentWrite,
   collections_delete: destructiveAdmin,
-  collections_documents: legacyRead,
+  collections_documents: read,
   collections_add_user: admin,
   collections_remove_user: destructiveAdmin,
   collections_memberships: read,

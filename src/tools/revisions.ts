@@ -11,6 +11,7 @@ export function registerRevisionTools(
     "revisions_list",
     "List version history of a document.",
     {
+      documentId: z.string().describe("Document ID"),
       sort: z.string().optional().describe("Sort field"),
       direction: z.enum(["ASC", "DESC"]).optional().describe("Sort direction"),
       limit: z.number().optional().describe("Number of results"),

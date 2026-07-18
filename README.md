@@ -1,6 +1,7 @@
 # yonote-mcp
 
 [![CI](https://github.com/aspix2k/yonote-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/aspix2k/yonote-mcp/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/aspix2k/yonote-mcp/branch/main/graph/badge.svg)](https://codecov.io/gh/aspix2k/yonote-mcp)
 [![npm](https://img.shields.io/npm/v/yonote-mcp)](https://www.npmjs.com/package/yonote-mcp)
 [![Node.js 22+](https://img.shields.io/badge/node-%3E%3D22-339933)](https://nodejs.org/)
 [![GPL-2.0](https://img.shields.io/github/license/aspix2k/yonote-mcp)](LICENSE)
@@ -41,7 +42,7 @@ Add this to `~/.codex/config.toml`:
 command = "npx"
 args = [
   "-y",
-  "yonote-mcp@1.0.1",
+  "yonote-mcp@1.0.2",
   "--token-file",
   "/absolute/path/to/token",
   "--project",
@@ -53,7 +54,7 @@ args = [
 
 ```bash
 claude mcp add yonote --scope user -- \
-  npx -y "yonote-mcp@1.0.1" \
+  npx -y "yonote-mcp@1.0.2" \
   --token-file /absolute/path/to/token \
   --project your-project
 ```
@@ -67,7 +68,7 @@ claude mcp add yonote --scope user -- \
       "command": "npx",
       "args": [
         "-y",
-        "yonote-mcp@1.0.1",
+        "yonote-mcp@1.0.2",
         "--token-file",
         "/absolute/path/to/token",
         "--project",
@@ -78,17 +79,17 @@ claude mcp add yonote --scope user -- \
 }
 ```
 
-The default configuration exposes 39 stable read operations. The selected MCP
+The default configuration exposes 40 stable read tools. The selected MCP
 profile limits which tools an agent can call, but does not reduce the
 permissions of the underlying Yonote API key. Restart the MCP client after
 changing its configuration.
 
 ## Focused knowledge setup
 
-For search and Q&A over a knowledge base, a six-tool catalog is often enough:
+For search and Q&A over a knowledge base, a seven-tool catalog is often enough:
 
 ```text
---enable-tools collections_list,collections_info,documents_list,documents_info,documents_search,documents_search_titles
+--enable-tools collections_list,collections_info,collections_documents,documents_list,documents_info,documents_search,documents_search_titles
 ```
 
 Add these two arguments to any client configuration as
