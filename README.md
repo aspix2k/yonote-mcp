@@ -1,7 +1,7 @@
 # yonote-mcp
 
 [![CI](https://github.com/aspix2k/yonote-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/aspix2k/yonote-mcp/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/aspix2k/yonote-mcp/branch/main/graph/badge.svg)](https://codecov.io/gh/aspix2k/yonote-mcp)
+[![coverage](https://img.shields.io/badge/coverage-98.3%25-brightgreen)](https://github.com/aspix2k/yonote-mcp/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/yonote-mcp)](https://www.npmjs.com/package/yonote-mcp)
 [![Node.js 22+](https://img.shields.io/badge/node-%3E%3D22-339933)](https://nodejs.org/)
 [![GPL-2.0](https://img.shields.io/github/license/aspix2k/yonote-mcp)](LICENSE)

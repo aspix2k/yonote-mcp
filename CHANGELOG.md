@@ -5,7 +5,7 @@
 - Adds a paginated collection hierarchy tool backed by the current
   `documents.list` API.
 - Requires the live `documentId` parameter for revision history.
-- Adds Codecov reporting and extends mutation testing to collection hierarchy
+- Adds a coverage badge and extends mutation testing to collection hierarchy
   logic.
 
 ## 1.0.1 - 2026-07-19
