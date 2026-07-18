@@ -1,7 +1,7 @@
 # yonote-mcp
 
 [![CI](https://github.com/aspix2k/yonote-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/aspix2k/yonote-mcp/actions/workflows/ci.yml)
-[![Node.js 20+](https://img.shields.io/badge/node-%3E%3D20-339933)](https://nodejs.org/)
+[![Node.js 22+](https://img.shields.io/badge/node-%3E%3D22-339933)](https://nodejs.org/)
 [![GPL-2.0](https://img.shields.io/github/license/aspix2k/yonote-mcp)](LICENSE)
 
 An MCP server for [Yonote](https://yonote.ru). It works with Codex, Claude Code,
@@ -17,7 +17,7 @@ This is a community project and is not affiliated with or endorsed by Yonote.
 
 ## Quick start
 
-Requires Node.js 20 or newer and a Yonote API key. Create a key as described in
+Requires Node.js 22 or newer and a Yonote API key. Create a key as described in
 the [official API documentation](https://yonote.ru/developers), then store it in
 a file readable only by your user. Yonote API keys have full access to workspace
 documents; treat them as passwords.
