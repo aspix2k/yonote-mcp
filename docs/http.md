@@ -8,7 +8,7 @@ a deployment behind an HTTPS reverse proxy.
 ```bash
 YONOTE_API_TOKEN_FILE=/run/secrets/yonote-token \
 MCP_TRANSPORT=http \
-npx -y "yonote-mcp@1.0.1"
+npx -y "yonote-mcp@1.0.2"
 ```
 
 The endpoint is `http://127.0.0.1:3000/mcp`; health is available at `/health`.
